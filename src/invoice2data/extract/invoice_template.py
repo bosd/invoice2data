@@ -10,7 +10,7 @@ from unidecode import unidecode
 import logging
 from collections import OrderedDict
 from . import parsers
-from .plugins import lines, tables
+from .plugins import lines, tables, camelot
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +27,7 @@ OPTIONS_DEFAULT = {
 
 PARSERS_MAPPING = {"lines": parsers.lines, "regex": parsers.regex, "static": parsers.static}
 
-PLUGIN_MAPPING = {"lines": lines, "tables": tables}
+PLUGIN_MAPPING = {"lines": lines, "tables": tables, "camelot": camelot}
 
 
 class InvoiceTemplate(OrderedDict):
@@ -151,7 +151,7 @@ class InvoiceTemplate(OrderedDict):
             return self.parse_date(value)
         assert False, "Unknown type"
 
-    def extract(self, optimized_str):
+    def extract(self, optimized_str, invoicefile):
         """
         Given a template file and a string, extract matching data fields.
         """
@@ -215,7 +215,7 @@ class InvoiceTemplate(OrderedDict):
         # Run plugins:
         for plugin_keyword, plugin_func in PLUGIN_MAPPING.items():
             if plugin_keyword in self.keys():
-                plugin_func.extract(self, optimized_str, output)
+                plugin_func.extract(self, optimized_str, output, invoicefile)
 
         # If required fields were found, return output, else log error.
         if "required_fields" not in self.keys():

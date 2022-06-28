@@ -9,6 +9,7 @@ import logging
 
 from .input import pdftotext
 from .input import pdfminer_wrapper
+from .input import pdfplumber
 from .input import tesseract
 from .input import tesseract4
 from .input import gvision
@@ -27,6 +28,7 @@ input_mapping = {
     "tesseract": tesseract,
     "tesseract4": tesseract4,
     "pdfminer": pdfminer_wrapper,
+    "pdfplumber": pdfplumber,
     "gvision": gvision,
 }
 
@@ -90,7 +92,7 @@ def extract_data(invoicefile, templates=None, input_module=pdftotext):
 
         if t.matches_input(optimized_str):
             logger.info("Using %s template", t["template_name"])
-            return t.extract(optimized_str)
+            return t.extract(optimized_str, invoicefile)
 
     logger.error("No template for %s", invoicefile)
     return False

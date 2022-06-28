@@ -9,7 +9,7 @@ only.
 from .. import parsers
 
 
-def extract(self, content, output):
+def extract(self, content, output, invoicefile):
     lines = parsers.lines.parse(self, "lines", self["lines"], content)
     if lines is not None:
         output["lines"] = lines

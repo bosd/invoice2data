@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 DEFAULT_OPTIONS = {"field_separator": r"\s+", "line_separator": r"\n"}
 
 
-def extract(self, content, output):
+def extract(self, content, output, invoicefile):
     """Try to extract tables from an invoice"""
 
     for table in self["tables"]:
@@ -27,7 +27,7 @@ def extract(self, content, output):
 
         start = re.search(table["start"], content)
         end = re.search(table["end"], content)
-
+        logger.debug("Table Parser CALLED!!!!!!!!!!!!")
         if not start or not end:
             logger.warning("no table body found - start %s, end %s", start, end)
             continue
