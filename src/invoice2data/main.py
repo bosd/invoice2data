@@ -107,7 +107,6 @@ def extract_data(invoicefile, templates=None, input_module=None):
     optimized_str = t.prepare_input(extracted_str)
     return t.extract(optimized_str, invoicefile, input_module)
 
-
 def create_parser():
     """Returns argument parser """
 

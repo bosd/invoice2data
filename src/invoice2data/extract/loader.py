@@ -59,10 +59,6 @@ def read_templates(folder: str = None):
         if "keywords" not in template.keys():
             raise ValueError("Missing mandatory 'keywords' field.")
 
-        # Convert keywords to list, if only one
-        if not isinstance(template["keywords"], list):
-            template["keywords"] = [template["keywords"]]
-
         # Set excluded_keywords as empty list, if not provided
         if "exclude_keywords" not in template.keys():
             template["exclude_keywords"] = []
