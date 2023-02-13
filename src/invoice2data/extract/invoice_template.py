@@ -8,6 +8,12 @@ import re
 import dateparser
 import unicodedata
 import logging
+
+
+from pprint import pformat
+
+
+
 from collections import OrderedDict
 from . import parsers
 from .plugins import lines, tables
@@ -15,7 +21,9 @@ from .plugins import lines, tables
 from ..input import pdftotext, tesseract
 from typing import Optional
 
-logger = logging.getLogger(__name__)
+
+
+
 
 OPTIONS_DEFAULT = {
     "remove_whitespace": False,
@@ -32,6 +40,52 @@ PARSERS_MAPPING = {"lines": parsers.lines, "regex": parsers.regex, "static": par
 
 PLUGIN_MAPPING = {"lines": lines, "tables": tables}
 
+class Color:
+    """A class for terminal color codes."""
+
+    BOLD = "\033[1m"
+    BLUE = "\033[94m"
+    WHITE = "\033[97m"
+    GREEN = "\033[92m"
+    YELLOW = "\033[93m"
+    RED = "\033[91m"
+    BOLD_WHITE = BOLD + WHITE
+    BOLD_BLUE = BOLD + BLUE
+    BOLD_GREEN = BOLD + GREEN
+    BOLD_YELLOW = BOLD + YELLOW
+    BOLD_RED = BOLD + RED
+    END = "\033[0m"
+
+
+class ColorLogFormatter(logging.Formatter):
+    """A class for formatting colored logs."""
+
+    FORMAT = "%(prefix)s%(msg)s%(suffix)s"
+
+    LOG_LEVEL_COLOR = {
+        "DEBUG": {'prefix': '', 'suffix': ''},
+        "INFO": {'prefix': '', 'suffix': ''},
+        "WARNING": {'prefix': Color.BOLD_YELLOW, 'suffix': Color.END},
+        "ERROR": {'prefix': Color.BOLD_RED, 'suffix': Color.END},
+        "CRITICAL": {'prefix': Color.BOLD_RED, 'suffix': Color.END},
+    }
+
+    def format(self, record):
+        """Format log records with a default prefix and suffix to terminal color codes that corresponds to the log level name."""
+        if not hasattr(record, 'prefix'):
+            record.prefix = self.LOG_LEVEL_COLOR.get(record.levelname.upper()).get('prefix')
+        
+        if not hasattr(record, 'suffix'):
+            record.suffix = self.LOG_LEVEL_COLOR.get(record.levelname.upper()).get('suffix')
+
+        formatter = logging.Formatter(self.FORMAT)
+        return formatter.format(record)
+
+logger = logging.getLogger(__name__)
+
+stream_handler = logging.StreamHandler()
+stream_handler.setFormatter(ColorLogFormatter())
+# logger.addHandler(stream_handler)
 
 class InvoiceTemplate(OrderedDict):
     """
@@ -41,7 +95,7 @@ class InvoiceTemplate(OrderedDict):
     -------
     prepare_input(extracted_str)
         Input raw string and do transformations, as set in template file.
-    matches_input(optimized_str)
+    matches_input(extracted_str)
         See if string matches keywords set in template file
     parse_number(value)
         Parse number, remove decimal separator and add other options
@@ -95,21 +149,21 @@ class InvoiceTemplate(OrderedDict):
 
         return optimized_str
 
-    def matches_input(self, optimized_str: str) -> bool:
+    def matches_input(self, extracted_str: str) -> bool:
         """See if string matches all keyword patterns and no exclude_keyword patterns set in template file.
 
         Args:
-        optimized_str: String of the text from OCR of the pdf after applying options defined in the template.
+        extracted_str: String of the text from OCR of the pdf before applying options defined in the template.
 
         Return:
         Boolean
             - True if all keywords are found and none of the exclude_keywords are found.
             - False if either not all keywords are found or at least one exclude_keyword is found."""
 
-        if all([re.search(keyword, optimized_str) for keyword in self["keywords"]]):
+        if all([re.search(keyword, extracted_str) for keyword in self["keywords"]]):
             # All keyword patterns matched
             if self["exclude_keywords"]:
-                if any([re.search(exclude_keyword, optimized_str) for exclude_keyword in self["exclude_keywords"]]):
+                if any([re.search(exclude_keyword, extracted_str) for exclude_keyword in self["exclude_keywords"]]):
                     # At least one exclude_keyword matches
                     logger.debug("Template: %s. Keywords matched. Exclude keyword found!", self["template_name"])
                     return False
@@ -261,6 +315,22 @@ class InvoiceTemplate(OrderedDict):
 
         if set(required_fields).issubset(output.keys()):
             output["desc"] = "Invoice from %s" % (self["issuer"])
+            # parsed = json.loads(output)
+            # parsed = json.dumps(str(output), ensure_ascii=True, indent=4, default=str)
+            # logger.debug(str(parsed))
+            "\033[92m green" 
+            logger.debug(Color.GREEN + "green" + Color.BOLD_RED + "red")
+            logger.debug(f"{Color.GREEN} green fstring {Color.BLUE} BLUE {Color.END} weer normaal" )
+            logger.debug("%s green old string %s BLUE %s {} weer normaal", Color.GREEN, Color.BLUE, Color.END)
+            logger.debug("This is debug", extra={'prefix': '🐛 '})
+            logger.info("This is a green info", extra={'prefix': Color.GREEN, 'suffix': Color.END})
+            # color thanks to
+            # https://stackoverflow.com/questions/384076/how-can-i-color-python-logging-output/56944256#56944256
+            my_complex_dict = pformat(output, sort_dicts=False, indent=2)
+            # logger.debug(f"My complex dict:\n{my_complex_dict}")
+            logger.debug(f"My complex dict:\n %s",my_complex_dict)
+            # https://realpython.com/python-pretty-print/#getting-a-pretty-string-with-pformat
+            logger.debug("hier onder komt de output")
             logger.debug(output)
             return output
         else:
