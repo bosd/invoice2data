@@ -27,7 +27,7 @@ import pkg_resources
 from invoice2data.main import create_parser, main
 from invoice2data.extract.loader import read_templates
 
-from .common import get_sample_files
+from .common import get_sample_files, inputparser_specific
 
 
 class TestCLI(unittest.TestCase):
@@ -187,6 +187,9 @@ class TestCLI(unittest.TestCase):
                 root, ext = os.path.splitext(file)
                 if root not in data:
                     data[root] = {}
+                if inputparser_specific(file):
+                    print("input parser specific file found!!!")
+                    continue
                 if file.endswith(('.pdf', '.txt')):
                     data[root]['input_fpath'] = os.path.join(path, file)
                 if file.endswith('.json'):
