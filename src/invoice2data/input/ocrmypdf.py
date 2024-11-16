@@ -26,7 +26,7 @@ OPTIONS_DEFAULT = {
 }
 
 
-def to_text(path, area_details: dict = None, input_reader_config: dict = {}):
+def to_text(path, area_details: dict = None, input_reader_config: dict = None):
     """Pre-process PDF files with ocrmypdf.
     Before sending them to the pdftotext parser.
 
@@ -43,6 +43,8 @@ def to_text(path, area_details: dict = None, input_reader_config: dict = {}):
         returns extracted text from pdf
 
     """
+    if input_reader_config is None:
+        input_reader_config = {}
     if not have_ocrmypdf():
         logger.warning("Cannot import ocrmypdf")
         return ""
@@ -114,8 +116,8 @@ def pre_process_pdf(path, pre_conf: dict = None):
         inputfile = Path(path)
         filename = inputfile.name
 
-        TMP_FOLDER = str(tempfile.gettempdir()) + "/"
-        ocrmypdf_conf["output_file"] = TMP_FOLDER + filename
+        tmp_folder = str(tempfile.gettempdir()) + "/"
+        ocrmypdf_conf["output_file"] = tmp_folder + filename
         logger.debug(
             "no output_file specified, using temp file *%s*",
             ocrmypdf_conf["output_file"],
