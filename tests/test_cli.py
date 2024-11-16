@@ -23,10 +23,7 @@ except ImportError:
     from io import StringIO  # noqa: F401
 import unittest
 
-import pkg_resources
-
-from invoice2data.__main__ import create_parser
-from invoice2data.__main__ import main
+from invoice2data.__main__ import main  # Import main only
 from invoice2data.extract.loader import read_templates
 
 from .common import exclude_template
@@ -48,49 +45,78 @@ needs_ocrmypdf = unittest.skipIf(not have_ocrmypdf(), reason="requires ocrmypdf"
 class TestCLI(unittest.TestCase):
     def setUp(self):
         self.templates = read_templates()
-        self.parser = create_parser()
 
     def compare_json_content(self, test_file, json_file):
+        """Compares the content of two JSON files.
+
+        Args:
+            test_file: Path to the first JSON file.
+            json_file: Path to the second JSON file.
+
+        Returns:
+            bool: True if the content is identical, False otherwise.
+        """
         with open(test_file) as json_test_file, open(json_file) as json_json_file:
             jdatatest = json.load(json_test_file)
             jdatajson = json.load(json_json_file)
             return jdatajson == jdatatest
 
     def test_input(self):
-        args = self.parser.parse_args(
-            ["--input-reader", "pdftotext"] + get_sample_files(".pdf")
-        )
-        main(args)
+        """Tests the --input-reader argument."""
+        with self.assertRaises(SystemExit) as cm:
+            main(["--input-reader", "pdftotext", *get_sample_files(".pdf")])
+        self.assertEqual(cm.exception.code, 0)
 
     def test_output_name(self):
+        """Tests the --output-name argument."""
         test_file = "inv_test_8asd89f78a9df.csv"
         exclude_list = ["AzureInterior.pdf"]
         test_list = exclude_template(get_sample_files(".pdf"), exclude_list)
-        args = self.parser.parse_args(
-            ["--output-name", test_file, "--output-format", "csv"] + test_list
-        )
-        main(args)
+        args = ["--output-name", test_file, "--output-format", "csv", *test_list]
+
+        with self.assertRaises(
+            SystemExit
+        ) as cm:  # Use assertRaises with a context manager
+            main(args)
+
+        self.assertEqual(
+            cm.exception.code, 0
+        )  # Assert that the exit code is 0 (success)
+
         self.assertTrue(os.path.exists(test_file))
         os.remove(test_file)
 
     def test_debug(self):
-        args = self.parser.parse_args(["--debug"] + get_sample_files(".pdf"))
-        main(args)
+        """Tests the --debug argument."""
+        with self.assertRaises(SystemExit) as cm:
+            main(["--debug", *get_sample_files(".pdf")])
+        self.assertEqual(cm.exception.code, 0)
 
     # TODO: move result comparison to own test module.
-    # TODO: parse output files instaed of comparing them byte-by-byte.
+    # TODO: parse output files instead of comparing them byte-by-byte.
 
     def test_content_json(self):
+        """Tests the JSON output content."""
         input_files = get_sample_files((".pdf", ".txt"))
+        tests_templ_folder = "./tests/custom/templates"
         json_files = get_sample_files(".json")
         test_files = "test_compare.json"
         for ifile in input_files:
             for jfile in json_files:
                 if ifile[:-4] == jfile[:-5]:
-                    args = self.parser.parse_args(
-                        ["--output-name", test_files, "--output-format", "json", ifile]
-                    )
-                    main(args)
+                    with self.assertRaises(SystemExit) as cm:
+                        main(
+                            [
+                                "--output-name",
+                                test_files,
+                                "--output-format",
+                                "json",
+                                "--template-folder",
+                                tests_templ_folder,
+                                ifile,
+                            ]
+                        )
+                    self.assertEqual(cm.exception.code, 0)
                     compare_verified = self.compare_json_content(test_files, jfile)
                     print(compare_verified)
                     if not compare_verified:
@@ -100,21 +126,23 @@ class TestCLI(unittest.TestCase):
                     os.remove(test_files)
 
     def test_output_format_date_json(self):
+        """Tests the date format in JSON output."""
         pdf_files = get_sample_files("free_fiber.pdf")
         test_file = "test_compare.json"
         for pfile in pdf_files:
-            args = self.parser.parse_args(
-                [
-                    "--output-name",
-                    test_file,
-                    "--output-format",
-                    "json",
-                    "--output-date-format",
-                    "%d/%m/%Y",
-                    pfile,
-                ]
-            )
-            main(args)
+            with self.assertRaises(SystemExit) as cm:
+                main(
+                    [
+                        "--output-name",
+                        test_file,
+                        "--output-format",
+                        "json",
+                        "--output-date-format",
+                        "%d/%m/%Y",
+                        pfile,
+                    ]
+                )
+            self.assertEqual(cm.exception.code, 0)
             with open(test_file) as json_test_file:
                 jdatatest = json.load(json_test_file)
             compare_verified = (jdatatest[0]["date"] == "02/07/2015") and (
@@ -126,21 +154,23 @@ class TestCLI(unittest.TestCase):
             os.remove(test_file)
 
     def test_output_format_date_csv(self):
+        """Tests the date format in CSV output."""
         pdf_files = get_sample_files("free_fiber.pdf")
         test_file = "test_compare.csv"
         for pfile in pdf_files:
-            args = self.parser.parse_args(
-                [
-                    "--output-name",
-                    test_file,
-                    "--output-format",
-                    "csv",
-                    "--output-date-format",
-                    "%d/%m/%Y",
-                    pfile,
-                ]
-            )
-            main(args)
+            with self.assertRaises(SystemExit) as cm:
+                main(
+                    [
+                        "--output-name",
+                        test_file,
+                        "--output-format",
+                        "csv",
+                        "--output-date-format",
+                        "%d/%m/%Y",
+                        pfile,
+                    ]
+                )
+            self.assertEqual(cm.exception.code, 0)
             with open(test_file) as csv_test_file:
                 csvdatatest = csv.DictReader(csv_test_file, delimiter=",")
                 for row in csvdatatest:
@@ -153,23 +183,25 @@ class TestCLI(unittest.TestCase):
             os.remove(test_file)
 
     def test_output_format_date_xml(self):
+        """Tests the date format in XML output."""
         pdf_files = get_sample_files("free_fiber.pdf")
         test_file = "test_compare.xml"
         for pfile in pdf_files:
-            args = self.parser.parse_args(
-                [
-                    "--output-name",
-                    test_file,
-                    "--output-format",
-                    "xml",
-                    "--output-date-format",
-                    "%d/%m/%Y",
-                    pfile,
-                ]
-            )
-            main(args)
+            with self.assertRaises(SystemExit) as cm:
+                main(
+                    [
+                        "--output-name",
+                        test_file,
+                        "--output-format",
+                        "xml",
+                        "--output-date-format",
+                        "%d/%m/%Y",
+                        pfile,
+                    ]
+                )
+            self.assertEqual(cm.exception.code, 0)
             with open(test_file) as xml_test_file:
-                xmldatatest = minidom.parse(xml_test_file)
+                xmldatatest = minidom.parse(xml_test_file)  # noqa
             dates = xmldatatest.getElementsByTagName("date")
             compare_verified = dates[0].firstChild.data == "02/07/2015"
             print(compare_verified)
@@ -178,7 +210,7 @@ class TestCLI(unittest.TestCase):
             os.remove(test_file)
 
     def test_copy(self):
-        # folder = pkg_resources.resource_filename(__name__, 'pdfs')
+        """Tests the --copy argument."""
         directory = os.path.dirname("tests/copy_test/pdf/")
         # make sure directory is deleted
         shutil.rmtree("tests/copy_test/", ignore_errors=True)
@@ -186,31 +218,24 @@ class TestCLI(unittest.TestCase):
 
         exclude_list = ["AzureInterior.pdf"]
         test_list = exclude_template(get_sample_files(".pdf"), exclude_list)
-        args = self.parser.parse_args(["--copy", "tests/copy_test/pdf"] + test_list)
-        main(args)
-        qty_copied_files = sum(
-            len(files)
-            for _, _, files in os.walk(
-                pkg_resources.resource_filename(__name__, "copy_test/pdf")
-            )
-        )
+
+        with self.assertRaises(SystemExit) as cm:
+            main(["--copy", "tests/copy_test/pdf", *test_list])
+        self.assertEqual(cm.exception.code, 0)
+        # Use os.walk to count files in the directory
+        qty_copied_files = 0
+        for _, _, files in os.walk(os.path.abspath("tests/copy_test/pdf")):
+            qty_copied_files += len(files)
+
         print("test_copy - Amount of copied files %s" % qty_copied_files)
         print("test_copy - test_list length", len(test_list))
         shutil.rmtree("tests/copy_test/", ignore_errors=True)
         self.assertEqual(qty_copied_files, len(test_list))
 
-    # def test_template(self):
-    #     directory = os.path.dirname("invoice2data/test/temp_test/")
-    #     os.makedirs(directory)
-    #     args = self.parser.parse_args(['--template-folder', 'ACME-templates', self._get_test_file_path()])
-    #     main(args)
-    #     shutil.rmtree('invoice2data/test/temp_test/', ignore_errors=True)
-    #     self.assertTrue(args.template_folder)
-
     def test_exclude_template(self):
-        for path, _subdirs, files in os.walk(
-            pkg_resources.resource_filename(__name__, "compare")
-        ):
+        """Tests the --exclude-built-in-templates argument."""
+        compare_folder = os.path.dirname("tests/compare/")
+        for path, _subdirs, files in os.walk(compare_folder):
             for file in files:
                 if file.endswith("oyo.pdf"):
                     my_file = os.path.join(path, file)
@@ -220,18 +245,32 @@ class TestCLI(unittest.TestCase):
             "src/invoice2data/extract/templates/com/com.oyo.invoice.yml",
             "tests/temp_test/",
         )
-        args = self.parser.parse_args(
-            ["--exclude-built-in-templates", "--template-folder", directory, my_file]
-        )
-        main(args)
+        with self.assertRaises(SystemExit) as cm:
+            main(
+                [
+                    "--exclude-built-in-templates",
+                    "--template-folder",
+                    directory,
+                    my_file,
+                ]
+            )
+        self.assertEqual(cm.exception.code, 0)
         shutil.rmtree("tests/temp_test/")
 
     def get_filename_format_test_data(self, filename_format):
-        # Generate test input and expected output by walking the compare dir
+        """Generates test input and expected output by walking the compare dir.
+
+        Args:
+            filename_format: The filename format string.
+
+        Returns:
+            A dictionary of test data.
+        """
         data = {}
-        for path, subdirs, files in os.walk(
-            pkg_resources.resource_filename(__name__, "compare")
-        ):
+        compare_folder = os.path.dirname("tests/compare/")
+        for path, _subdirs, files in os.walk(compare_folder):
+            print("debug files\n")  # bosd
+            print(files)  # bosd
             for file in files:
                 root, ext = os.path.splitext(file)
                 if "AzureInterior" in file:
@@ -255,6 +294,7 @@ class TestCLI(unittest.TestCase):
         return data
 
     def test_copy_with_default_filename_format(self):
+        """Tests the --copy argument with the default filename format."""
         copy_dir = os.path.join("tests", "copy_test", "pdf")
         # make sure directory is deleted
         shutil.rmtree(os.path.dirname(copy_dir), ignore_errors=True)
@@ -266,8 +306,15 @@ class TestCLI(unittest.TestCase):
 
         sample_files = [v["input_fpath"] for k, v in data.items()]
 
-        args = self.parser.parse_args(["--copy", copy_dir] + sample_files)
-        main(args)
+        with self.assertRaises(SystemExit) as cm:
+            main(
+                [
+                    "--copy",
+                    copy_dir,  # Pass the copy_dir as an argument
+                    *sample_files,
+                ]
+            )
+        self.assertEqual(cm.exception.code, 0)
 
         self.assertTrue(
             all(
@@ -279,6 +326,7 @@ class TestCLI(unittest.TestCase):
         shutil.rmtree(os.path.dirname(copy_dir), ignore_errors=True)
 
     def test_copy_with_custom_filename_format(self):
+        """Tests the --copy argument with a custom filename format."""
         copy_dir = os.path.join("tests", "copy_test", "pdf")
         filename_format = "Custom Prefix {date} {invoice_number}.pdf"
 
@@ -288,10 +336,17 @@ class TestCLI(unittest.TestCase):
 
         sample_files = [v["input_fpath"] for k, v in data.items()]
 
-        args = self.parser.parse_args(
-            ["--copy", copy_dir, "--filename-format", filename_format] + sample_files
-        )
-        main(args)
+        with self.assertRaises(SystemExit) as cm:
+            main(
+                [
+                    "--copy",
+                    copy_dir,
+                    "--filename-format",
+                    filename_format,
+                    *sample_files,
+                ]
+            )
+        self.assertEqual(cm.exception.code, 0)
 
         self.assertTrue(
             all(
@@ -303,21 +358,23 @@ class TestCLI(unittest.TestCase):
         shutil.rmtree(os.path.dirname(copy_dir), ignore_errors=True)
 
     def test_area(self):
+        """Tests the --area argument."""
         pdf_files = get_sample_files("NetpresseInvoice.pdf")
         test_file = "test_area.json"
         for pfile in pdf_files:
-            args = self.parser.parse_args(
-                [
-                    "--output-name",
-                    test_file,
-                    "--output-format",
-                    "json",
-                    "--output-date-format",
-                    "%Y-%m-%d",
-                    pfile,
-                ]
-            )
-            main(args)
+            with self.assertRaises(SystemExit) as cm:
+                main(
+                    [
+                        "--output-name",
+                        test_file,
+                        "--output-format",
+                        "json",
+                        "--output-date-format",
+                        "%Y-%m-%d",
+                        pfile,
+                    ]
+                )
+            self.assertEqual(cm.exception.code, 0)
             with open(test_file) as json_test_file:
                 jdatatest = json.load(json_test_file)
             compare_verified = jdatatest[0]["date"] == "2022-11-28"
@@ -331,23 +388,25 @@ class TestCLI(unittest.TestCase):
 
     @needs_ocrmypdf
     def test_ocrmypdf(self):
+        """Tests the ocrmypdf input reader."""
         pdf_files = get_sample_files("saeco.pdf", exclude_input_specific=False)
         test_file = "test_ocrmypdf.json"
         for pfile in pdf_files:
-            args = self.parser.parse_args(
-                [
-                    "--output-name",
-                    test_file,
-                    "--input-reader",
-                    "ocrmypdf",
-                    "--output-format",
-                    "json",
-                    "--output-date-format",
-                    "%Y-%m-%d",
-                    pfile,
-                ]
-            )
-            main(args)
+            with self.assertRaises(SystemExit) as cm:
+                main(
+                    [
+                        "--output-name",
+                        test_file,
+                        "--input-reader",
+                        "ocrmypdf",
+                        "--output-format",
+                        "json",
+                        "--output-date-format",
+                        "%Y-%m-%d",
+                        pfile,
+                    ]
+                )
+            self.assertEqual(cm.exception.code, 0)
             with open(test_file) as json_test_file:
                 jdatatest = json.load(json_test_file)
             compare_verified = jdatatest[0]["date"] == "2022-09-08"
@@ -360,23 +419,25 @@ class TestCLI(unittest.TestCase):
 
     @needs_ocrmypdf
     def test_fallback_with_ocrmypdf(self):
+        """Tests the fallback from pdftotext to ocrmypdf."""
         pdf_files = get_sample_files("saeco.pdf", exclude_input_specific=False)
         test_file = "test_fallback_ocrmypdf.json"
         for pfile in pdf_files:
-            args = self.parser.parse_args(
-                [
-                    "--output-name",
-                    test_file,
-                    "--input-reader",
-                    "pdftotext",
-                    "--output-format",
-                    "json",
-                    "--output-date-format",
-                    "%Y-%m-%d",
-                    pfile,
-                ]
-            )
-            main(args)
+            with self.assertRaises(SystemExit) as cm:
+                main(
+                    [
+                        "--output-name",
+                        test_file,
+                        "--input-reader",
+                        "pdftotext",
+                        "--output-format",
+                        "json",
+                        "--output-date-format",
+                        "%Y-%m-%d",
+                        pfile,
+                    ]
+                )
+            self.assertEqual(cm.exception.code, 0)
             with open(test_file) as json_test_file:
                 jdatatest = json.load(json_test_file)
             compare_verified = jdatatest[0]["date"] == "2022-09-08"
