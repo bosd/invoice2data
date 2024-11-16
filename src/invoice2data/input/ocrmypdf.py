@@ -28,6 +28,7 @@ OPTIONS_DEFAULT = {
 
 def to_text(path, area_details: dict = None, input_reader_config: dict = None):
     """Pre-process PDF files with ocrmypdf.
+
     Before sending them to the pdftotext parser.
 
     Before usage make sure you have the dependencies installed.
@@ -65,8 +66,8 @@ def to_text(path, area_details: dict = None, input_reader_config: dict = None):
 
 def pre_process_pdf(path, pre_conf: dict = None):
     """Pre-process PDF files with ocrmypdf.
-    Before sending them to the pdftotext parser.
 
+    Before sending them to the pdftotext parser.
     Before usage make sure you have the dependencies installed.
 
     Parameters
