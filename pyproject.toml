@@ -26,14 +26,14 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Python Modules",
     "Development Status :: 5 - Production/Stable",
 ]
+
 dependencies = [
     "click >=8.0.1",
     "dateparser >= 1.2.0",
     "PyYAML >= 6.0",
-    "regex >= 2024.4.16",  # bosd edit
+    "regex >= 2024.4.16",
 ]
 
-# todo , extras = ["libyaml"], python = ">=3.11,
 
 [project.urls]
 homepage = "https://github.com/invoice-x/invoice2data"
