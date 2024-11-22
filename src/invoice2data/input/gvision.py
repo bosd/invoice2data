@@ -7,13 +7,18 @@ import os
 logger = logging.getLogger(__name__)
 
 
+try:
+    import google
+    from google.cloud import storage
+    from google.cloud import vision
+
+    GOOGLE_CLOUD_AVAILABLE = True
+except ImportError:
+    GOOGLE_CLOUD_AVAILABLE = False
+
+
 def have_google_cloud():
-    try:
-        from google.cloud import storage  # noqa: F401
-        from google.cloud import vision  # noqa: F401
-    except ImportError:
-        return False
-    return True
+    return GOOGLE_CLOUD_AVAILABLE
 
 
 def to_text(
