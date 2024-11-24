@@ -192,7 +192,7 @@ def parse_current_row(match, current_row):
     for field, value in match.groupdict().items():
         current_row[field] = "%s%s%s" % (
             current_row.get(field, ""),
-            current_row.get(field, "") and "\n" or "",
+            (current_row.get(field, "") and "\n") or "",
             value.strip() if value else "",
         )
     return current_row
