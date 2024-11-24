@@ -17,7 +17,7 @@ def to_text(path: str, area_details: dict = None) -> str:
 
     Raises:
         FileNotFoundError: If the specified PDF file is not found.
-        RuntimeError: If pdftotext fails to extract text.
+        OSError: If pdftotext fails to extract text.
     """
     if not os.path.exists(path):
         raise FileNotFoundError(f"File not found: {path}")
