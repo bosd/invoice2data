@@ -6,21 +6,17 @@ from typing import Any
 from typing import Dict
 from typing import Optional
 
-from ..invoice_template import InvoiceTemplate
-
 
 logger = getLogger(__name__)
 
 DEFAULT_OPTIONS = {"field_separator": r"\s+", "line_separator": r"\n"}
 
 
-def extract(
-    self: InvoiceTemplate, content: str, output: Dict[str, Any]
-) -> Optional[Dict[str, Any]]:
+def extract(self, content: str, output: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """Try to extract tables from an invoice.
 
     Args:
-        self (InvoiceTemplate): The current instance of the class.
+        self (InvoiceTemplate): The current instance of the class.  # noqa: DOC103
         content (str): The content of the invoice.
         output (Dict[str, Any]): A dictionary to store the extracted data.
 
@@ -49,12 +45,12 @@ def extract(
 
 
 def _extract_and_validate_settings(
-    self: InvoiceTemplate, table: Dict[str, Any]
+    self, table: Dict[str, Any]
 ) -> Optional[Dict[str, Any]]:
     """Extract and validate table settings.
 
     Args:
-        self (InvoiceTemplate): The current instance of the class.
+        self (InvoiceTemplate): The current instance of the class.  # noqa: DOC103
         table (Dict[str, Any]): A dictionary containing the table settings.
 
     Returns:
@@ -101,7 +97,7 @@ def _extract_table_body(content: str, table: Dict[str, Any]) -> Optional[str]:
 
 
 def _process_table_lines(
-    self: InvoiceTemplate,
+    self,
     table: Dict[str, Any],
     table_body: str,
     output: Dict[str, Any],
@@ -109,7 +105,7 @@ def _process_table_lines(
     """Process the lines within the table body.
 
     Args:
-        self (InvoiceTemplate): The current instance of the class.
+        self (InvoiceTemplate): The current instance of the class.  # noqa: DOC103
         table (Dict[str, Any]): The validated table settings.
         table_body (str): The extracted table body.
         output (Dict[str, Any]): A dictionary to store the extracted data.
@@ -141,7 +137,7 @@ def _process_table_lines(
 
 
 def _process_table_line(
-    self: InvoiceTemplate,
+    self,
     table: Dict[str, Any],
     line: str,
     types: list,
@@ -150,7 +146,7 @@ def _process_table_line(
     """Process a single line within the table body.
 
     Args:
-        self (InvoiceTemplate): The current instance of the class.
+        self (InvoiceTemplate): The current instance of the class.  # noqa: DOC103
         table (Dict[str, Any]): The validated table settings.
         line (str): A single line from the table body.
         types (list): A list of type coercion rules.
