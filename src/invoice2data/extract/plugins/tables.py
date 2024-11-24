@@ -6,17 +6,21 @@ from typing import Any
 from typing import Dict
 from typing import Optional
 
+from ..invoice_template import InvoiceTemplate
+
 
 logger = getLogger(__name__)
 
 DEFAULT_OPTIONS = {"field_separator": r"\s+", "line_separator": r"\n"}
 
 
-def extract(self, content: str, output: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+def extract(
+    self: InvoiceTemplate, content: str, output: Dict[str, Any]
+) -> Optional[Dict[str, Any]]:
     """Try to extract tables from an invoice.
 
     Args:
-        self: The current instance of the class.
+        self (InvoiceTemplate): The current instance of the class.
         content (str): The content of the invoice.
         output (Dict[str, Any]): A dictionary to store the extracted data.
 
@@ -45,12 +49,12 @@ def extract(self, content: str, output: Dict[str, Any]) -> Optional[Dict[str, An
 
 
 def _extract_and_validate_settings(
-    self, table: Dict[str, Any]
+    self: InvoiceTemplate, table: Dict[str, Any]
 ) -> Optional[Dict[str, Any]]:
     """Extract and validate table settings.
 
     Args:
-        self: The current instance of the class.
+        self (InvoiceTemplate): The current instance of the class.
         table (Dict[str, Any]): A dictionary containing the table settings.
 
     Returns:
@@ -72,7 +76,6 @@ def _extract_table_body(content: str, table: Dict[str, Any]) -> Optional[str]:
     """Extract the table body from the content.
 
     Args:
-        self: The current instance of the class.
         content (str): The content of the invoice.
         table (Dict[str, Any]): The validated table settings.
 
@@ -98,12 +101,15 @@ def _extract_table_body(content: str, table: Dict[str, Any]) -> Optional[str]:
 
 
 def _process_table_lines(
-    self, table: Dict[str, Any], table_body: str, output: Dict[str, Any]
+    self: InvoiceTemplate,
+    table: Dict[str, Any],
+    table_body: str,
+    output: Dict[str, Any],
 ) -> bool:
     """Process the lines within the table body.
 
     Args:
-        self: The current instance of the class.
+        self (InvoiceTemplate): The current instance of the class.
         table (Dict[str, Any]): The validated table settings.
         table_body (str): The extracted table body.
         output (Dict[str, Any]): A dictionary to store the extracted data.
@@ -135,12 +141,16 @@ def _process_table_lines(
 
 
 def _process_table_line(
-    self, table: Dict[str, Any], line: str, types: list, output: Dict[str, Any]
+    self: InvoiceTemplate,
+    table: Dict[str, Any],
+    line: str,
+    types: list,
+    output: Dict[str, Any],
 ) -> bool:
     """Process a single line within the table body.
 
     Args:
-        self: The current instance of the class.
+        self (InvoiceTemplate): The current instance of the class.
         table (Dict[str, Any]): The validated table settings.
         line (str): A single line from the table body.
         types (list): A list of type coercion rules.
