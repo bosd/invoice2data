@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 
 try:
-    import google
+    import google  # noqa
     from google.cloud import storage
     from google.cloud import vision
 
