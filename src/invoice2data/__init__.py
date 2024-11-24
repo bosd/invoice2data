@@ -1,1 +1,3 @@
-from .main import extract_data  # noqa: F401
+"""Invoice2Data."""
+
+from .__main__ import extract_data  # noqa: F401

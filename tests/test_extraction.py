@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Run: python -m unittest tests.test_extraction
 
 # Or: python -m unittest discover
@@ -12,11 +11,11 @@
 
 import datetime
 import json
-import unittest
-import pkg_resources
 import os
+import unittest
+from importlib.resources import files
 
-from invoice2data.main import extract_data
+from invoice2data.__main__ import extract_data
 from invoice2data.extract.loader import read_templates
 
 
@@ -25,39 +24,42 @@ class TestExtraction(unittest.TestCase):
         self.templates = read_templates()
 
     def _run_test_on_folder(self, folder):
-        for path, subdirs, files in os.walk(folder):
-            for file in files:
-                res = extract_data(os.path.join(path, file), self.templates)
-                print(file, res)
+        for path, _subdirs, file in os.walk(folder):
+            for f in file:
+                res = extract_data(os.path.join(path, f), self.templates)
+                print(f, res)
 
     def test_external_pdfs(self):
-        folder = os.getenv('EXTERNAL_PDFS', None)
+        folder = os.getenv("EXTERNAL_PDFS", None)
         if folder:
             self._run_test_on_folder(folder)
 
     def test_internal_pdfs(self):
-        folder = pkg_resources.resource_filename(__name__, 'pdfs')
+        folder = files(__package__).joinpath("pdfs")  # Use importlib.resources
         self._run_test_on_folder(folder)
 
     def test_custom_invoices(self):
         directory = os.path.dirname("tests/custom/templates/")
         templates = read_templates(directory)
 
-        for path, subdirs, files in os.walk(pkg_resources.resource_filename(__name__, 'custom')):
-            for file in files:
-                if file.endswith(('.pdf', '.txt')):
-                    ifile = os.path.join(path, file)
-                    jfile = os.path.join(path, file[:-4] + '.json')
+        custom_folder = os.path.dirname("tests/custom/")
+        for path, _subdirs, file in os.walk(custom_folder):
+            for f in file:
+                if f.endswith((".pdf", ".txt")):
+                    ifile = os.path.join(path, f)
+                    jfile = os.path.join(path, f[:-4] + ".json")
 
                     res = extract_data(ifile, templates)
                     for key, value in res.items():
                         if type(value) is datetime.datetime:
-                            res[key] = value.strftime('%Y-%m-%d')
+                            res[key] = value.strftime("%Y-%m-%d")
                     res = [res]
                     with open(jfile) as json_file:
                         ref_json = json.load(json_file)
-                        self.assertTrue(res == ref_json, 'Unexpected data extracted from ' + ifile)
+                        self.assertTrue(
+                            res == ref_json, "Unexpected data extracted from " + ifile
+                        )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

@@ -1,41 +1,45 @@
-# -*- coding: utf-8 -*-
+"""Tesseract OCR input module for invoice2data."""
 
+import mimetypes
+import os
 import shutil
 import tempfile
-import mimetypes
-
-from subprocess import Popen, PIPE, STDOUT, CalledProcessError, TimeoutExpired
-from subprocess import run
-from pathlib import Path
-
 from logging import getLogger
+from pathlib import Path
+from subprocess import PIPE
+from subprocess import STDOUT
+from subprocess import CalledProcessError
+from subprocess import Popen
+from subprocess import TimeoutExpired
+from subprocess import run
+
 
 logger = getLogger(__name__)
 
 
-def to_text(path: str, area_details: dict = None):
-    """Wraps Tesseract OCR with auto language model.
+def to_text(path: str, area_details: dict = None) -> str:
+    """Extract text from image using tesseract OCR.
 
-    Parameters
-    ----------
-    path : str
-        path of electronic invoice in PDF, JPG or PNG format
-    area_details : dictionary
-        of the format {x: int, y: int, r: int, W: int, H: int}
-        used when extracting an area of the pdf rather than the whole document
+    Args:
+        path (str): Path to the image file.
+        area_details (dict, optional):
+            Specific area in the image to extract text from.
+            Defaults to None (extract from the entire image).
 
-    Returns
-    -------
-    extracted_str : str
-        returns extracted text from image
+    Returns:
+        str: The extracted text.
 
+    Raises:
+        FileNotFoundError: If the specified image file is not found.
+        OSError: If Tesseract OCR fails to extract text.
     """
-
+    if not os.path.exists(path):
+        raise FileNotFoundError(f"File not found: {path}")
     # Check for dependencies. Needs Tesseract and Imagemagick installed.
     if not shutil.which("tesseract"):
-        raise EnvironmentError("tesseract not installed.")
+        raise OSError("tesseract not installed.")
     if not shutil.which("convert"):
-        raise EnvironmentError("imagemagick not installed.")
+        raise OSError("imagemagick not installed.")
 
     language = get_languages()
     logger.debug("tesseract language arg is, %s", language)
@@ -72,8 +76,8 @@ def to_text(path: str, area_details: dict = None):
     inputfile = Path(path)
     filename = inputfile.stem
 
-    TMP_FOLDER = str(tempfile.gettempdir()) + "/"
-    logger.debug("temp dir is, *%s*", TMP_FOLDER)
+    tmp_folder = str(tempfile.gettempdir()) + "/"
+    logger.debug("temp dir is, *%s*", tmp_folder)
 
     tess_cmd = [
         "tesseract",
@@ -88,9 +92,9 @@ def to_text(path: str, area_details: dict = None):
         "-c",
         "textonly_pdf=1",
         tess_input,
-        TMP_FOLDER + filename,
+        tmp_folder + filename,
         "pdf",
-        "txt"
+        "txt",
     ]
 
     logger.debug("Calling tesseract with args, %s", tess_cmd)
@@ -112,26 +116,33 @@ def to_text(path: str, area_details: dict = None):
     if area_details is not None:
         # An area was specified
         # Validate the required keys were provided
-        assert 'f' in area_details, 'Area r details missing'
-        assert 'l' in area_details, 'Area r details missing'
-        assert 'r' in area_details, 'Area r details missing'
-        assert 'x' in area_details, 'Area x details missing'
-        assert 'y' in area_details, 'Area y details missing'
-        assert 'W' in area_details, 'Area W details missing'
-        assert 'H' in area_details, 'Area H details missing'
+        assert "f" in area_details, "Area r details missing"
+        assert "l" in area_details, "Area r details missing"
+        assert "r" in area_details, "Area r details missing"
+        assert "x" in area_details, "Area x details missing"
+        assert "y" in area_details, "Area y details missing"
+        assert "W" in area_details, "Area W details missing"
+        assert "H" in area_details, "Area H details missing"
         # Convert all of the values to strings
         for key in area_details.keys():
             area_details[key] = str(area_details[key])
         pdftotext_cmd += [
-            '-f', area_details['f'],
-            '-l', area_details['l'],
-            '-r', area_details['r'],
-            '-x', area_details['x'],
-            '-y', area_details['y'],
-            '-W', area_details['W'],
-            '-H', area_details['H'],
+            "-f",
+            area_details["f"],
+            "-l",
+            area_details["l"],
+            "-r",
+            area_details["r"],
+            "-x",
+            area_details["x"],
+            "-y",
+            area_details["y"],
+            "-W",
+            area_details["W"],
+            "-H",
+            area_details["H"],
         ]
-    pdftotext_cmd += [TMP_FOLDER + filename + ".pdf", "-"]
+    pdftotext_cmd += [tmp_folder + filename + ".pdf", "-"]
 
     logger.debug("Calling pdfttext with, %s", pdftotext_cmd)
     p3 = Popen(pdftotext_cmd, stdin=p2.stdout, stdout=PIPE)
@@ -142,11 +153,10 @@ def to_text(path: str, area_details: dict = None):
     except TimeoutExpired:
         p3.kill()
         logger.warning("pdftotext took too long - skipping")
-    return extracted_str.decode('utf-8')
+    return extracted_str.decode("utf-8")
 
 
 def get_languages():
-
     def lang_error(output):
         logger.warning = (
             "Tesseract failed to report available languages.\n"
@@ -154,8 +164,9 @@ def get_languages():
             "-----------\n"
         )
         return
+
     logger.debug("get lang called")
-    args_tess = ['tesseract', '--list-langs']
+    args_tess = ["tesseract", "--list-langs"]
     try:
         proc = run(
             args_tess,
@@ -166,11 +177,11 @@ def get_languages():
         )
         output = proc.stdout
     except CalledProcessError as e:
-        raise EnvironmentError(lang_error(e.output)) from e
+        raise OSError(lang_error(e.output)) from e
 
     for line in output.splitlines():
-        if line.startswith('Error'):
-            raise EnvironmentError(lang_error(output))
+        if line.startswith("Error"):
+            raise OSError(lang_error(output))
     _header, *rest = output.splitlines()
     langlist = {lang.strip() for lang in rest}
-    return '+'.join(map(str, langlist))
+    return "+".join(map(str, langlist))

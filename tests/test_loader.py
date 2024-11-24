@@ -1,12 +1,13 @@
+import os
 import shutil
+import unittest
 from pathlib import Path
 
-import os
 import pytest
-import unittest
 
 from invoice2data.extract.invoice_template import InvoiceTemplate
-from invoice2data.extract.loader import read_templates, ordered_load
+from invoice2data.extract.loader import ordered_load
+from invoice2data.extract.loader import read_templates
 
 
 @pytest.fixture
@@ -60,7 +61,7 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(
             cm.output,
             [
-                "WARNING:invoice2data.extract.loader:json Loader Failed to load template stream\nExpecting value: line"
+                "WARNING:invoice2data.extract.loader:JSON Loader Failed to load template stream\nExpecting value: line"
                 " 1 column 1 (char 0)"
             ],
         )
