@@ -210,7 +210,6 @@ def tests(session: nox.Session) -> None:
             "pytest",
             external=True,
             env={"UV_PROJECT_ENVIRONMENT": session.virtualenv.location},
-            *session.posargs,
         )
     finally:
         if session.interactive:
