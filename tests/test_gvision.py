@@ -57,9 +57,6 @@ def test_to_text(mocker):
 
 def test_to_text_existing_result(mocker):
     # Mock the specific classes within google.cloud
-    mock_vision_client = mocker.patch(
-        "invoice2data.input.gvision.google.cloud.vision.ImageAnnotatorClient"
-    )
     mock_storage_client = mocker.patch(
         "invoice2data.input.gvision.google.cloud.storage.Client"
     )
