@@ -5,6 +5,8 @@ Initial work and maintenance by Holger Brunn @hbrunn
 
 import re
 from logging import getLogger
+from typing import Any
+from typing import Dict
 from typing import List
 from typing import Match
 from typing import Optional
@@ -19,12 +21,16 @@ DEFAULT_OPTIONS = {"line_separator": r"\n"}
 def parse_line(patterns: Union[str, List[str]], line: str) -> Optional[Match[str]]:
     """Parse a line using a given pattern or list of patterns.
 
+    This function searches for a match in the given line using the provided
+    pattern or list of patterns. If a match is found, it returns the match
+    object; otherwise, it returns None.
+
     Args:
-        patterns: The pattern(s) to search for.
-        line: The line to parse.
+        patterns (Union[str, List[str]]): The pattern(s) to search for.
+        line (str): The line to parse.
 
     Returns:
-        A match object if a match is found, otherwise None.
+        Optional[Match[str]]: A match object if a match is found, otherwise None.
     """
     patterns = patterns if isinstance(patterns, list) else [patterns]
     for pattern in patterns:
@@ -34,8 +40,15 @@ def parse_line(patterns: Union[str, List[str]], line: str) -> Optional[Match[str
     return None
 
 
-def parse_block(template, field, settings, content):
+def parse_block(  # noqa: RUF100 C901
+    template: Dict[str, Any], field: str, settings: Dict[str, Any], content: str
+) -> List[Dict[str, Any]]:
     """Parse a block of lines to extract data.
+
+    This function parses a block of lines from an invoice to extract data
+    based on the provided template and settings. It handles different line
+    types (first line, last line, regular lines) and can skip specific lines
+    based on the configuration.
 
     Args:
         template (Dict[str, Any]): The template containing extraction rules.
