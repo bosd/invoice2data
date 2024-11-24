@@ -21,15 +21,11 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Upgrade pip
-        run: |
-          pip install --constraint="$(pwd)/.github/workflows/constraints.txt" pip
-          pip --version
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
 
-      - name: Install Poetry
-        run: |
-          pip install --constraint="$(pwd)/.github/workflows/constraints.txt" poetry
-          poetry --version
+      - name: Install dependencies
+        run: uv pip install
 
       - name: Check if there is a parent commit
         id: check-parent-commit
@@ -53,7 +49,7 @@ jobs:
 
       - name: Build package
         run: |
-          poetry build --ansi
+          uv build
 
       - name: Publish package on PyPI
         if: steps.check-version.outputs.tag
