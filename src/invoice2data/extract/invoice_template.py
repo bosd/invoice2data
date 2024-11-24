@@ -230,7 +230,7 @@ class InvoiceTemplate(OrderedDict):
             dict: The extracted data.
 
         Raises:
-            RuntimeError: If no fields are found in the template.
+            ValueError: If a required field could not be parsed
         """
         logger.debug("START optimized_str ========================\n" + optimized_str)
         logger.debug("END optimized_str ==========================")
