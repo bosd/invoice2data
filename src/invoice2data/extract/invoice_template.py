@@ -207,13 +207,13 @@ class InvoiceTemplate(OrderedDict):
             AssertionError: If the target_type is unknown.
         """
         if target_type == "int":
-            if not value.strip():
+            if not value:
                 return 0
-            return int(self.parse_number(value))
+            return int(self.parse_number(str(value)))
         elif target_type == "float":
-            if not value.strip():
+            if not value:
                 return 0.0
-            return float(self.parse_number(value))
+            return float(self.parse_number(str(value)))
         elif target_type == "date":
             return self.parse_date(value)
         raise AssertionError("Unknown type")
