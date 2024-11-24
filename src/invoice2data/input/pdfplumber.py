@@ -39,7 +39,7 @@ def to_text(path: str, **kwargs: Dict[str, Any]) -> str:
             )
         res = {
             "all": "\n\n".join(pages),
-            "first": pages and pages[0] or "",
+            "first": (pages and pages[0]) or "",
         }
     logger.debug("Text extraction made with pdfplumber")
 
