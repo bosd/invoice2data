@@ -5,6 +5,10 @@ Initial work and maintenance by Holger Brunn @hbrunn
 
 import re
 from logging import getLogger
+from typing import List
+from typing import Match
+from typing import Optional
+from typing import Union
 
 
 logger = getLogger(__name__)
@@ -12,7 +16,16 @@ logger = getLogger(__name__)
 DEFAULT_OPTIONS = {"line_separator": r"\n"}
 
 
-def parse_line(patterns, line):
+def parse_line(patterns: Union[str, List[str]], line: str) -> Optional[Match[str]]:
+    """Parse a line using a given pattern or list of patterns.
+
+    Args:
+        patterns: The pattern(s) to search for.
+        line: The line to parse.
+
+    Returns:
+        A match object if a match is found, otherwise None.
+    """
     patterns = patterns if isinstance(patterns, list) else [patterns]
     for pattern in patterns:
         match = re.search(pattern, line)
@@ -22,6 +35,18 @@ def parse_line(patterns, line):
 
 
 def parse_block(template, field, settings, content):
+    """Parse a block of lines to extract data.
+
+    Args:
+        template (Dict[str, Any]): The template containing extraction rules.
+        field (str): The name of the field to extract.
+        settings (Dict[str, Any]): The settings for the extraction rule.
+        content (str): The text content to parse.
+
+    Returns:
+        List[Dict[str, Any]]: A list of dictionaries, where each dictionary
+                               represents an extracted row with field-value pairs.
+    """
     # Validate settings
     assert "line" in settings, (
         "Error in Template %s Line regex missing" % template["template_name"]
