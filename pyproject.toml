@@ -192,6 +192,7 @@ extend-ignore = [
 
 [tool.ruff.lint.per-file-ignores]
 "*/test_*.py" = ["S101","D100","D101","D102"]
+
 "noxfile.py" = ["S101"]
 "**/conftest.py" = ["S101"]
 
@@ -200,5 +201,5 @@ convention = "google"
 
 [tool.pydoclint]
 style = 'google'
-exclude = '\.git|\.nox|tests*|noxfile.py'
+exclude = '\.git|\.nox|tests*|noxfile.py|tables.py'
 arg-type-hints-in-docstring = true
