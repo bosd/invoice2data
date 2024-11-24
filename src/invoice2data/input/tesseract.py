@@ -31,7 +31,7 @@ def to_text(path: str, area_details: dict = None) -> str:
 
     Raises:
         FileNotFoundError: If the specified image file is not found.
-        RuntimeError: If Tesseract OCR fails to extract text.
+        OSError: If Tesseract OCR fails to extract text.
     """
     if not os.path.exists(path):
         raise FileNotFoundError(f"File not found: {path}")
