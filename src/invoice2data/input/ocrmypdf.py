@@ -3,6 +3,9 @@
 import logging
 import tempfile
 from pathlib import Path
+from typing import Any
+from typing import Dict
+from typing import Optional
 
 from . import pdftotext
 
@@ -17,11 +20,10 @@ def ocrmypdf_available() -> bool:
         bool: True if ocrmypdf is available, False otherwise.
     """
     try:
-        import ocrmypdf  # noqa F401
-
-        return True
+        import ocrmypdf  # type: ignore[import-not-found]  # Ignore import error for mypy
     except ImportError:
         return False
+    return True
 
 
 # Default options for redo-ocr to act as a fallback when pdftotext fails
@@ -34,7 +36,13 @@ OPTIONS_DEFAULT = {
 
 
 def to_text(
-    path: str, area_details: dict = None, input_reader_config: dict = None
+    path: str,
+    area_details: Optional[
+        Dict[str, Any]
+    ] = None,  # Use Optional for optional dictionary
+    input_reader_config: Optional[
+        Dict[str, Any]
+    ] = None,  # Use Optional for optional dictionary
 ) -> str:
     """Pre-processes PDF files with ocrmypdf before PDFtotext parsing.
 
@@ -43,8 +51,8 @@ def to_text(
 
     Args:
         path (str): Path to the PDF invoice file.
-        area_details (dict, optional): Details about the area to extract. Defaults to None.
-        input_reader_config (dict, optional): Configuration settings for the input reader. Defaults to None.
+        area_details (Optional[Dict[str, Any]], optional): Details about the area to extract. Defaults to None.
+        input_reader_config (Optional[Dict[str, Any]], optional): Configuration settings for the input reader. Defaults to None.
 
     Returns:
         str: Extracted text from the PDF, or an empty string if OCRmyPDF is not available or processing fails.
@@ -67,7 +75,9 @@ def to_text(
         return ""
 
 
-def pre_process_pdf(path: str, pre_conf: dict = None) -> str:
+def pre_process_pdf(
+    path: str, pre_conf: Optional[Dict[str, Any]] = None
+) -> Optional[str]:  # Use Optional for optional dictionary and return type
     """Pre-processes PDF files with ocrmypdf before PDFtotext parsing.
 
     Uses a temporary file for the output by default.
@@ -75,14 +85,10 @@ def pre_process_pdf(path: str, pre_conf: dict = None) -> str:
 
     Args:
         path (str): Path to the PDF invoice file.
-        pre_conf (dict, optional): Configuration settings for ocrmypdf. Defaults to None.
+        pre_conf (Optional[Dict[str, Any]], optional): Configuration settings for ocrmypdf. Defaults to None.
 
     Returns:
-        str: Path to the processed PDF file, or None if processing fails.
-
-    Notes:
-        For available ocrmypdf options, refer to:
-        https://ocrmypdf.readthedocs.io/en/latest/api.html#reference
+        Optional[str]: Path to the processed PDF file, or None if processing fails.
     """
     if not ocrmypdf_available():
         logger.warning("ocrmypdf is not available. Install with 'pip install ocrmypdf'")
@@ -117,7 +123,8 @@ def pre_process_pdf(path: str, pre_conf: dict = None) -> str:
         logger.info("Text extraction performed with ocrmypdf")
         pre_proc_output = ocrmypdf_conf["output_file"]
         logger.debug("ocrmypdf output file: %s", pre_proc_output)
-        return pre_proc_output
+        assert isinstance(pre_proc_output, str)
+        return pre_proc_output  # Return the output file path
     else:
         logger.warning("ocrmypdf failed, stopping processing of this file")
         return None

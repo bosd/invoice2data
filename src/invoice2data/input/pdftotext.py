@@ -1,9 +1,12 @@
 """Poppler pdftotext input module for invoice2data."""
 
 import os
+from typing import Any
+from typing import Dict
+from typing import Optional
 
 
-def to_text(path: str, area_details: dict = None) -> str:
+def to_text(path: str, area_details: Optional[Dict[str, Any]] = None) -> str:
     """Extract text from a PDF file using pdftotext.
 
     Args:

@@ -1,11 +1,12 @@
 import unittest
-
-import pytest
+from typing import Any
+from typing import Dict
+from typing import List
 
 from invoice2data.extract.invoice_template import InvoiceTemplate
 
 
-def test_template_with_exclude_keyword_is_not_matched():
+def test_template_with_exclude_keyword_is_not_matched() -> None:
     optimized_str = "Basic Test Which should not pass because of the word Exclude_this"
     invoicetempl = InvoiceTemplate(
         [
@@ -20,45 +21,43 @@ def test_template_with_exclude_keyword_is_not_matched():
     assert template_matched is False, "A template with exclude keywords is not matched"
 
 
-def test_skip_template_with_too_long_lang_code():
-    options_test = {
-        "currency": "EUR",
+def test_skip_template_with_too_long_lang_code() -> None:
+    options_test: Dict[str, List[str]] = {
+        "currency": ["EUR"],
         "date_formats": [],
         "languages": ["aaa"],
-        "decimal_separator": ".",
+        "decimal_separator": ["."],
         "replace": [],
     }
 
-    tpl = {}
+    tpl: Dict[str, Any] = {}
     tpl["keywords"] = ["Basic Test"]
     tpl["exclude_keywords"] = []
     tpl["options"] = options_test
-    tpl["template_name"] = "3_char_langcode.yml"
+    tpl["template_name"] = ["3_char_langcode.yml"]
     try:
-        invoicetempl = InvoiceTemplate(tpl)
+        InvoiceTemplate(tpl)
     except Exception:
         assert (
             True
         ), "Template with language code length != 2 characters is not initiated"
     else:
-        print("InvoiceTempl is\n%s" % invoicetempl)
-        debug = invoicetempl["options"]
-        print("debug is\n%s" % debug)
-        with pytest.raises(AssertionError):
-            InvoiceTemplate(invoicetempl)
+        raise AssertionError(  # Raise AssertionError here
+            "Template with language code length != 2 characters is initiated"
+        )
 
 
 class TestInvoiceTemplateMethods(unittest.TestCase):
-    def test_replace_a_with_b(self):
-        options_test = {
-            "currency": "EUR",
+    def test_replace_a_with_b(self) -> None:
+        options_test: Dict[str, Any] = {
+            "currency": ["EUR"],
             "date_formats": [],
             "languages": ["aa"],
-            "decimal_separator": ".",
+            "decimal_separator": ["."],
             "replace": [["a", "b"]],
         }
 
-        tpl = {}
+        tpl: Dict[str, Any] = {}
         tpl["keywords"] = ["Basic Test"]
         tpl["exclude_keywords"] = []
         tpl["options"] = options_test
@@ -72,16 +71,16 @@ class TestInvoiceTemplateMethods(unittest.TestCase):
         print("optimized_str: \n%s" % optimized_str)
         self.assertEqual(optimized_str, "b")
 
-    def test_remove_accents(self):
-        options_test = {
-            "currency": "EUR",
+    def test_remove_accents(self) -> None:
+        options_test: Dict[str, Any] = {
+            "currency": ["EUR"],
             "date_formats": [],
             "languages": ["aa"],
-            "decimal_separator": ".",
+            "decimal_separator": ["."],
             "remove_accents": True,
         }
 
-        tpl = {}
+        tpl: Dict[str, Any] = {}
         tpl["keywords"] = ["Basic Test"]
         tpl["exclude_keywords"] = []
         tpl["options"] = options_test
@@ -99,22 +98,22 @@ class TestInvoiceTemplateMethods(unittest.TestCase):
             "Remove accents function failed, output not equal",
         )
 
-    def test_remove_whitespace(self):
-        options_test = {
-            "currency": "EUR",
+    def test_remove_whitespace(self) -> None:
+        options_test: Dict[str, Any] = {
+            "currency": ["EUR"],
             "date_formats": [],
             "languages": ["aa"],
-            "decimal_separator": ".",
+            "decimal_separator": ["."],
             "remove_whitespace": True,
         }
 
-        tpl = {}
+        tpl: Dict[str, Any] = {}
         tpl["keywords"] = ["Basic Test"]
         tpl["exclude_keywords"] = []
         tpl["options"] = options_test
         tpl["template_name"] = "test_remove_whitespace"
         invoicetempl = InvoiceTemplate(tpl)
-        extracted_str = "a     b"
+        extracted_str = "a    b"
         print("InvoiceTempl: \n%s" % invoicetempl)
 
         optimized_str = invoicetempl.prepare_input(extracted_str)
@@ -122,16 +121,16 @@ class TestInvoiceTemplateMethods(unittest.TestCase):
         print("optimized_str: \n%s\n" % optimized_str)
         self.assertEqual(optimized_str, "ab", "remove whitespace test failed")
 
-    def test_lowercase(self):
-        options_test = {
-            "currency": "EUR",
+    def test_lowercase(self) -> None:
+        options_test: Dict[str, Any] = {
+            "currency": ["EUR"],
             "date_formats": [],
             "languages": ["aa"],
-            "decimal_separator": ".",
+            "decimal_separator": ["."],
             "lowercase": True,
         }
 
-        tpl = {}
+        tpl: Dict[str, Any] = {}
         tpl["keywords"] = ["Basic Test"]
         tpl["exclude_keywords"] = []
         tpl["options"] = options_test
