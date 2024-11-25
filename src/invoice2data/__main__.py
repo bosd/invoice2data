@@ -111,8 +111,8 @@ if not logger.handlers:
 
 
 def extract_data(
-    invoicefile: str, templates: List[Any] = None, input_module: Any = None
-) -> Union[Dict, bool]:
+    invoicefile: str, templates: Optional[List[Any]] = None, input_module: Any = None
+) -> Dict[str, Any]:
     """Extracts structured data from PDF/image invoices.
 
     This function uses the text extracted from a PDF file or image and
@@ -128,7 +128,7 @@ def extract_data(
                                         Choices: {'pdftotext', 'pdfminer', 'tesseract', 'text'}.
 
     Returns:
-        Union[Dict, bool]: Extracted and matched fields, or False if no template matches.
+        Dict[str, Any]: Extracted and matched fields, or False if no template matches.
 
     Notes:
         Import the required `input_module` when using invoice2data as a library.
@@ -158,14 +158,14 @@ def extract_data(
             invoicefile,
             input_module.__name__,
         )
-        return False
+        return {}
 
     logger.debug(
         "START pdftotext result ===========================\n%s", extracted_str
     )
     logger.debug("END pdftotext result =============================")
 
-    if templates is None:
+    if not templates:
         templates = read_templates()
 
     # Convert templates to a list to allow indexing
@@ -192,10 +192,10 @@ def extract_data(
                 )
             else:
                 logger.error("No template for %s", invoicefile)
-                return False
+                return {}
         else:
             logger.error("No template for %s", invoicefile)
-            return False
+            return {}
 
     return deepcopy(result)
 
