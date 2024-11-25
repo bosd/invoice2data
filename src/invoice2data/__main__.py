@@ -11,7 +11,7 @@ from typing import Any
 from typing import ClassVar
 from typing import Dict
 from typing import List
-from typing import Union
+from typing import Optional
 
 import click
 
@@ -107,8 +107,8 @@ if not logger.handlers:
 
 
 def extract_data(
-    invoicefile: str, templates: List[Any] = None, input_module: Any = None
-) -> Union[Dict, bool]:
+    invoicefile: str, templates: Optional[List[Any]] = None, input_module: Any = None
+) -> Dict[str, Any]:
     """Extracts structured data from PDF/image invoices.
 
     This function uses the text extracted from a PDF file or image and
@@ -121,14 +121,14 @@ def extract_data(
     Args:
         invoicefile (str): Path of electronic invoice file in PDF, JPEG, PNG
                             (example: "/home/duskybomb/pdf/invoice.pdf").
-        templates (List[Any], optional): List of instances of class `InvoiceTemplate`.
+        templates (Optional[List[Any]]): List of instances of class `InvoiceTemplate`.
                                     Templates are loaded using `read_template` function in `loader.py`.
         input_module (Any, optional): Library to be used to extract text
                                          from the given `invoicefile`.
                                          Choices: {'pdftotext', 'pdfminer', 'tesseract', 'text'}.
 
     Returns:
-        Union[Dict, bool]: Extracted and matched fields, or False if no template matches.
+        Dict[str, Any]: Extracted and matched fields, or False if no template matches.
 
     Notes:
         Import the required `input_module` when using invoice2data as a library.
@@ -159,14 +159,14 @@ def extract_data(
             invoicefile,
             input_module.__name__,
         )
-        return False
+        return {}
 
     logger.debug(
         "START pdftotext result ===========================\n%s", extracted_str
     )
     logger.debug("END pdftotext result =============================")
 
-    if templates is None:
+    if not templates:
         templates = read_templates()
     templates_matched = filter(lambda t: t.matches_input(extracted_str), templates)
     templates_matched = sorted(
@@ -180,10 +180,10 @@ def extract_data(
             )
             if not templates_matched:
                 logger.error("No template for %s", invoicefile)
-                return False
+                return {}
         else:
             logger.error("No template for %s", invoicefile)
-            return False
+            return {}
 
     t = templates_matched[0]
     logger.info("Using %s template", t["template_name"])
