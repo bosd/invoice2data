@@ -1,27 +1,12 @@
-# Run: python -m unittest tests.test_cli
-
-# Or: python -m unittest discover
-
-# 1. You define your own class derived from unittest.TestCase.
-# 2. Then you fill it with functions that start with 'test_'
-# 3. You run the tests by placing unittest.main() in your file,
-#    usually at the bottom.
-
-# https://docs.python.org/3.10/library/unittest.html#test-cases
-
 import csv
 import datetime
 import json
 import os
 import shutil
-from xml.dom import minidom
-
-
-try:
-    from StringIO import StringIO
-except ImportError:
-    from io import StringIO  # noqa: F401
 import unittest
+from typing import Any
+from typing import Dict
+from xml.dom import minidom
 
 from invoice2data.__main__ import main  # Import main only
 from invoice2data.extract.loader import read_templates
@@ -31,9 +16,9 @@ from .common import get_sample_files
 from .common import inputparser_specific
 
 
-def ocrmypdf_available():
+def ocrmypdf_available() -> bool:
     try:
-        import ocrmypdf  # noqa: F401
+        import ocrmypdf  # type: ignore[import-not-found] # noqa: F401
     except ImportError:
         return False
     return True
@@ -43,15 +28,15 @@ needs_ocrmypdf = unittest.skipIf(not ocrmypdf_available(), reason="requires ocrm
 
 
 class TestCLI(unittest.TestCase):
-    def setUp(self):
+    def setUp(self) -> None:
         self.templates = read_templates()
 
-    def compare_json_content(self, test_file, json_file):
+    def compare_json_content(self, test_file: str, json_file: str) -> Any:
         """Compares the content of two JSON files.
 
         Args:
-            test_file: Path to the first JSON file.
-            json_file: Path to the second JSON file.
+            test_file (str): Path to the first JSON file.
+            json_file (str): Path to the second JSON file.
 
         Returns:
             bool: True if the content is identical, False otherwise.
@@ -61,13 +46,13 @@ class TestCLI(unittest.TestCase):
             jdatajson = json.load(json_json_file)
             return jdatajson == jdatatest
 
-    def test_input(self):
+    def test_input(self) -> None:
         """Tests the --input-reader argument."""
         with self.assertRaises(SystemExit) as cm:
             main(["--input-reader", "pdftotext", *get_sample_files(".pdf")])
         self.assertEqual(cm.exception.code, 0)
 
-    def test_output_name(self):
+    def test_output_name(self) -> None:
         """Tests the --output-name argument."""
         test_file = "inv_test_8asd89f78a9df.csv"
         exclude_list = ["AzureInterior.pdf"]
@@ -86,7 +71,7 @@ class TestCLI(unittest.TestCase):
         self.assertTrue(os.path.exists(test_file))
         os.remove(test_file)
 
-    def test_debug(self):
+    def test_debug(self) -> None:
         """Tests the --debug argument."""
         with self.assertRaises(SystemExit) as cm:
             main(["--debug", *get_sample_files(".pdf")])
@@ -95,9 +80,10 @@ class TestCLI(unittest.TestCase):
     # TODO: move result comparison to own test module.
     # TODO: parse output files instead of comparing them byte-by-byte.
 
-    def test_content_json(self):
+    def test_content_json(self) -> None:
         """Tests the JSON output content."""
-        input_files = get_sample_files((".pdf", ".txt"))
+        input_files = get_sample_files(".pdf")
+        input_files += get_sample_files(".txt")
         tests_templ_folder = "./tests/custom/templates"
         json_files = get_sample_files(".json")
         test_files = "test_compare.json"
@@ -125,7 +111,7 @@ class TestCLI(unittest.TestCase):
                         )
                     os.remove(test_files)
 
-    def test_output_format_date_json(self):
+    def test_output_format_date_json(self) -> None:
         """Tests the date format in JSON output."""
         pdf_files = get_sample_files("free_fiber.pdf")
         test_file = "test_compare.json"
@@ -153,7 +139,7 @@ class TestCLI(unittest.TestCase):
                 self.assertTrue(False, "Unexpected date format")
             os.remove(test_file)
 
-    def test_output_format_date_csv(self):
+    def test_output_format_date_csv(self) -> None:
         """Tests the date format in CSV output."""
         pdf_files = get_sample_files("free_fiber.pdf")
         test_file = "test_compare.csv"
@@ -182,7 +168,7 @@ class TestCLI(unittest.TestCase):
                         self.assertTrue(False, "Unexpected date format")
             os.remove(test_file)
 
-    def test_output_format_date_xml(self):
+    def test_output_format_date_xml(self) -> None:
         """Tests the date format in XML output."""
         pdf_files = get_sample_files("free_fiber.pdf")
         test_file = "test_compare.xml"
@@ -203,13 +189,13 @@ class TestCLI(unittest.TestCase):
             with open(test_file) as xml_test_file:
                 xmldatatest = minidom.parse(xml_test_file)  # noqa
             dates = xmldatatest.getElementsByTagName("date")
-            compare_verified = dates[0].firstChild.data == "02/07/2015"
+            compare_verified = dates[0].firstChild.data == "02/07/2015"  # type: ignore
             print(compare_verified)
             if not compare_verified:
                 self.assertTrue(False, "Unexpected date format")
             os.remove(test_file)
 
-    def test_copy(self):
+    def test_copy(self) -> None:
         """Tests the --copy argument."""
         directory = os.path.dirname("tests/copy_test/pdf/")
         # make sure directory is deleted
@@ -232,7 +218,7 @@ class TestCLI(unittest.TestCase):
         shutil.rmtree("tests/copy_test/", ignore_errors=True)
         self.assertEqual(qty_copied_files, len(test_list))
 
-    def test_exclude_template(self):
+    def test_exclude_template(self) -> None:
         """Tests the --exclude-built-in-templates argument."""
         compare_folder = os.path.dirname("tests/compare/")
         for path, _subdirs, files in os.walk(compare_folder):
@@ -257,16 +243,16 @@ class TestCLI(unittest.TestCase):
         self.assertEqual(cm.exception.code, 0)
         shutil.rmtree("tests/temp_test/")
 
-    def get_filename_format_test_data(self, filename_format):
+    def get_filename_format_test_data(self, filename_format: str) -> Dict[str, Any]:
         """Generates test input and expected output by walking the compare dir.
 
         Args:
-            filename_format: The filename format string.
+            filename_format (str): The filename format string.
 
         Returns:
-            A dictionary of test data.
+            Dict[str, Any]: A dictionary of test data.
         """
-        data = {}
+        data: Dict[str, Any] = {}
         compare_folder = os.path.dirname("tests/compare/")
         for path, _subdirs, files in os.walk(compare_folder):
             print("debug files\n")  # bosd
@@ -288,19 +274,21 @@ class TestCLI(unittest.TestCase):
                         date = datetime.datetime.strptime(res["date"], "%Y-%m-%d")
                         data[root]["output_fname"] = filename_format.format(
                             date=date.strftime("%Y-%m-%d"),
-                            invoice_number=res["invoice_number"],
+                            invoice_number=str(
+                                res["invoice_number"]
+                            ),  # Convert to string
                             desc=res["desc"],
                         )
         return data
 
-    def test_copy_with_default_filename_format(self):
+    def test_copy_with_default_filename_format(self) -> None:
         """Tests the --copy argument with the default filename format."""
         copy_dir = os.path.join("tests", "copy_test", "pdf")
         # make sure directory is deleted
         shutil.rmtree(os.path.dirname(copy_dir), ignore_errors=True)
         filename_format = "{date} {invoice_number} {desc}.pdf"
 
-        data = self.get_filename_format_test_data(filename_format)
+        data: Dict[str, Any] = self.get_filename_format_test_data(filename_format)
 
         os.makedirs(copy_dir)
 
@@ -325,12 +313,12 @@ class TestCLI(unittest.TestCase):
 
         shutil.rmtree(os.path.dirname(copy_dir), ignore_errors=True)
 
-    def test_copy_with_custom_filename_format(self):
+    def test_copy_with_custom_filename_format(self) -> None:
         """Tests the --copy argument with a custom filename format."""
         copy_dir = os.path.join("tests", "copy_test", "pdf")
         filename_format = "Custom Prefix {date} {invoice_number}.pdf"
 
-        data = self.get_filename_format_test_data(filename_format)
+        data: Dict[str, Any] = self.get_filename_format_test_data(filename_format)
 
         os.makedirs(copy_dir)
 
@@ -357,7 +345,7 @@ class TestCLI(unittest.TestCase):
 
         shutil.rmtree(os.path.dirname(copy_dir), ignore_errors=True)
 
-    def test_area(self):
+    def test_area(self) -> None:
         """Tests the --area argument."""
         pdf_files = get_sample_files("NetpresseInvoice.pdf")
         test_file = "test_area.json"
@@ -387,7 +375,7 @@ class TestCLI(unittest.TestCase):
     # before any keywords can be matched
 
     @needs_ocrmypdf
-    def test_ocrmypdf(self):
+    def test_ocrmypdf(self) -> None:
         """Tests the ocrmypdf input reader."""
         pdf_files = get_sample_files("saeco.pdf", exclude_input_specific=False)
         test_file = "test_ocrmypdf.json"
@@ -418,7 +406,7 @@ class TestCLI(unittest.TestCase):
     # with ocrmypdf installed
 
     @needs_ocrmypdf
-    def test_fallback_with_ocrmypdf(self):
+    def test_fallback_with_ocrmypdf(self) -> None:
         """Tests the fallback from pdftotext to ocrmypdf."""
         pdf_files = get_sample_files("saeco.pdf", exclude_input_specific=False)
         test_file = "test_fallback_ocrmypdf.json"
