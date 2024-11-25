@@ -241,7 +241,7 @@ class TestCLI(unittest.TestCase):
                 ]
             )
         self.assertEqual(cm.exception.code, 0)
-        shutil.rmtree("tests/temp_test/")
+        shutil.rmtree(directory, ignore_errors=True)
 
     def get_filename_format_test_data(self, filename_format: str) -> Dict[str, Any]:
         """Generates test input and expected output by walking the compare dir.
@@ -255,8 +255,6 @@ class TestCLI(unittest.TestCase):
         data: Dict[str, Any] = {}
         compare_folder = os.path.dirname("tests/compare/")
         for path, _subdirs, files in os.walk(compare_folder):
-            print("debug files\n")  # bosd
-            print(files)  # bosd
             for file in files:
                 root, ext = os.path.splitext(file)
                 if "AzureInterior" in file:

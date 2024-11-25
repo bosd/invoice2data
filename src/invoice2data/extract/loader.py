@@ -11,6 +11,8 @@ from typing import Any
 from typing import Callable
 from typing import Dict
 from typing import List
+from typing import Optional
+from typing import cast
 
 
 try:
@@ -18,17 +20,19 @@ try:
     from yaml import YAMLError
     from yaml import load
 except ImportError:  # pragma: no cover
-    from yaml import SafeLoader
+    from yaml import SafeLoader  # type: ignore[import-untyped]
     from yaml import YAMLError
     from yaml import load
 
-from .invoice_template import InvoiceTemplate
+from .invoice_template import InvoiceTemplate  # type: ignore[unused-ignore]
 
 
 logger = getLogger(__name__)
 
 
-def ordered_load(stream: str, loader: Callable = json.loads) -> List[InvoiceTemplate]:
+def ordered_load(
+    stream: str, loader: Callable[[str], Any] = json.loads
+) -> List[InvoiceTemplate]:
     """Loads a stream of JSON data.
 
     Args:
@@ -44,18 +48,18 @@ def ordered_load(stream: str, loader: Callable = json.loads) -> List[InvoiceTemp
         tpl_stream = json.loads(stream)
     except ValueError as error:
         logger.warning("JSON Loader Failed to load template stream\n%s", error)
-        return
+        return []
 
     # Always pre-process template to remain backwards compatible
     for tpl in tpl_stream:
         tpl = prepare_template(tpl)
         if tpl:
-            output.append(InvoiceTemplate(tpl))
+            output.append(InvoiceTemplate(cast(Dict[str, Any], tpl)))
 
     return output
 
 
-def read_templates(folder: str = None) -> List[InvoiceTemplate]:
+def read_templates(folder: Optional[str] = None) -> List[InvoiceTemplate]:
     """Load YAML templates from template folder. Return list of dicts.
 
     Use built-in templates if no folder is set.
@@ -106,20 +110,20 @@ def read_templates(folder: str = None) -> List[InvoiceTemplate]:
             tpl = prepare_template(tpl)
 
             if tpl:
-                output.append(InvoiceTemplate(tpl))
+                output.append(InvoiceTemplate(cast(Dict[str, Any], tpl)))
 
     logger.info("Loaded %d templates from %s", len(output), folder)
     return output
 
 
-def prepare_template(tpl: Dict[str, Any]) -> Dict[str, Any]:
+def prepare_template(tpl: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """Prepare a template for use.
 
     Args:
         tpl (Dict[str, Any]): Template dictionary.
 
     Returns:
-        Dict[str, Any]: Processed template dictionary.
+        Optional[Dict[str, Any]]: Processed template dictionary.
     """
     # Test if all required fields are in template
     if "keywords" not in tpl:
