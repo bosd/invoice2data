@@ -12,9 +12,11 @@ from typing import ClassVar
 from typing import Dict
 from typing import List
 from typing import Optional
+from typing import Tuple
 
 import click
 
+from invoice2data.extract.invoice_template import InvoiceTemplate
 from invoice2data.extract.loader import read_templates
 
 from .input import gvision
@@ -77,7 +79,7 @@ class ColorLogFormatter(logging.Formatter):
         "CRITICAL": {"prefix": Color.BOLD_RED, "suffix": Color.END},
     }
 
-    def format(self, record):
+    def format(self, record: logging.LogRecord) -> str:
         """Format log and console records with colors.
 
         Format log records with a default prefix and suffix
@@ -117,34 +119,17 @@ def extract_data(
     Reads template if no template assigned.
     Required fields are matches from templates.
 
-
     Args:
         invoicefile (str): Path of electronic invoice file in PDF, JPEG, PNG
-                            (example: "/home/duskybomb/pdf/invoice.pdf").
+                                    (example: "/home/duskybomb/pdf/invoice.pdf").
         templates (Optional[List[Any]]): List of instances of class `InvoiceTemplate`.
-                                    Templates are loaded using `read_template` function in `loader.py`.
+                                                Templates are loaded using `read_template` function in `loader.py`.
         input_module (Any, optional): Library to be used to extract text
-                                         from the given `invoicefile`.
-                                         Choices: {'pdftotext', 'pdfminer', 'tesseract', 'text'}.
+                                        from the given `invoicefile`.
+                                        Choices: {'pdftotext', 'pdfminer', 'tesseract', 'text'}.
 
     Returns:
-        Dict[str, Any]: Extracted and matched fields, or False if no template matches.
-
-    Notes:
-        Import the required `input_module` when using invoice2data as a library.
-
-    See Also:
-        read_template: Function to load templates.
-        InvoiceTemplate: Class representing single template files that live as .yml files on the disk.
-
-    Examples:
-        When using `invoice2data` as a library:
-
-        >>> from invoice2data.input import pdftotext
-        >>> extract_data("invoice2data/test/pdfs/oyo.pdf", None, pdftotext)
-        {'issuer': 'OYO', 'amount': 1939.0, 'date': datetime.datetime(2017, 12, 31, 0, 0), 'invoice_number': 'IBZY2087',
-        'currency': 'INR', 'desc': 'Invoice IBZY2087 from OYO'}
-
+        Dict[str, Any]: Extracted and matched fields.
     """
     if input_module is None:
         if invoicefile.lower().endswith(".txt"):
@@ -168,72 +153,73 @@ def extract_data(
 
     if not templates:
         templates = read_templates()
-    templates_matched = filter(lambda t: t.matches_input(extracted_str), templates)
-    templates_matched = sorted(
-        templates_matched, key=lambda k: k["priority"], reverse=True
-    )
-    if not templates_matched:
+
+    # Convert templates to a list to allow indexing
+    templates = list(templates)
+
+    # Initialize result as an empty dictionary
+    result: Dict[str, Any] = {}
+    for template in templates:
+        if template.matches_input(extracted_str):
+            logger.info("Using %s template", template["template_name"])
+            optimized_str = template.prepare_input(extracted_str)
+            result = template.extract(optimized_str, invoicefile, input_module)
+            break
+
+    if not result:
         if ocrmypdf.ocrmypdf_available() and input_module is not ocrmypdf:
             logger.debug("Text extraction failed, falling back to ocrmypdf")
             extracted_str, invoicefile, templates_matched = (
                 extract_data_fallback_ocrmypdf(invoicefile, templates, input_module)
             )
-            if not templates_matched:
+            if templates_matched:
+                result = templates_matched[0].extract(
+                    extracted_str, invoicefile, input_module
+                )
+            else:
                 logger.error("No template for %s", invoicefile)
                 return {}
         else:
             logger.error("No template for %s", invoicefile)
             return {}
 
-    t = templates_matched[0]
-    logger.info("Using %s template", t["template_name"])
-    optimized_str = t.prepare_input(extracted_str)
-
-    result = t.extract(optimized_str, invoicefile, input_module)
-
-    # Check if the result is a dictionary before deepcopy
-    if isinstance(result, dict):
-        return deepcopy(result)
-    else:
-        logger.warning(
-            "Extraction result is not a dictionary for %s. " "Skipping deepcopy.",
-            invoicefile,
-        )
-        return result  # Return the original result without deepcopy
+    return deepcopy(result)
 
 
-def extract_data_fallback_ocrmypdf(invoicefile, templates, input_module):
+def extract_data_fallback_ocrmypdf(
+    invoicefile: str,
+    templates: List[InvoiceTemplate],
+    input_module: Any,
+) -> Tuple[str, str, List[InvoiceTemplate]]:
     logger.debug("Trying OCR extraction with ocrmypdf")
     extracted_str = ocrmypdf.to_text(invoicefile)
-    templates_matched = filter(lambda t: t.matches_input(extracted_str), templates)
-    templates_matched = sorted(
-        templates_matched, key=lambda k: k["priority"], reverse=True
+
+    # Convert the filter object to a list
+    templates_matched: List[InvoiceTemplate] = list(
+        filter(lambda t: t.matches_input(extracted_str), templates)
     )
+    templates_matched.sort(key=lambda k: k["priority"], reverse=True)
 
     if templates_matched:
         result = templates_matched[0].extract(extracted_str, invoicefile, input_module)
-        if not isinstance(result, dict):
-            logger.warning(
-                "OCR result is not a dictionary for %s. Skipping deepcopy.",
-                invoicefile,
-            )
-            return extracted_str, invoicefile, [deepcopy(templates_matched[0])]
 
         return extracted_str, invoicefile, templates_matched
+    else:
+        # Return empty list if no template is matched
+        return extracted_str, invoicefile, []
 
 
 @click.command()
 @click.option(
     "--input-reader",
     "-i",
-    type=click.Choice(input_mapping.keys()),
-    # default="pdftotext", # bosd
+    type=click.Choice(list(input_mapping.keys())),
     help="Choose text extraction function. Default: auto-detect between text & pdftotext",
 )
 @click.option(
     "--output-format",
     "-f",
-    type=click.Choice(output_mapping.keys()),
+    type=click.Choice(list(output_mapping.keys())),
     default="none",
     help="Choose output format. Default: none",
 )
@@ -276,31 +262,29 @@ def extract_data_fallback_ocrmypdf(invoicefile, templates, input_module):
 @click.argument(
     "input_files",
     type=click.File("wb"),
-    # type=click.Path(exists=True),
     nargs=-1,
 )
-# @click.pass_context
 @click.version_option()
 def main(
-    input_reader,
-    output_format,
-    output_date_format,
-    output_name,
-    debug,
-    copy,
-    move,
-    filename_format,
-    template_folder,
-    exclude_built_in_templates,
-    input_files,
-):
+    input_reader: Optional[str],
+    output_format: str,
+    output_date_format: str,
+    output_name: str,
+    debug: bool,
+    copy: Optional[str],
+    move: Optional[str],
+    filename_format: str,
+    template_folder: Optional[str],
+    exclude_built_in_templates: bool,
+    input_files: List[Any],
+) -> None:
     """Extract structured data from PDF files and save to CSV or JSON."""
     if debug:
         logger.setLevel(logging.DEBUG)
     else:
         logger.setLevel(level=logging.INFO)
 
-    input_module = input_mapping.get(input_reader)
+    input_module = input_reader
     output_module = output_mapping[output_format]
 
     templates = []
@@ -318,23 +302,19 @@ def main(
                 output.append(res)
 
                 if copy or move:  # Only perform copy/move operations if needed
-                    # Create a deepcopy of res only if it's a dictionary
-                    if not isinstance(res, dict):
-                        kwargs = res.to_dict()  # Convert KeyValue to dict
-                    else:
-                        kwargs = deepcopy(res)
-                    for key, value in kwargs.items():
-                        if isinstance(value, list) and len(value) >= 1:
-                            kwargs[key] = value[0]
-                    for key, value in kwargs.items():
-                        if isinstance(value, datetime.datetime):
-                            kwargs[key] = value.strftime("%Y-%m-%d")
-                    if copy:
-                        filename = filename_format.format(**kwargs)
-                        shutil.copyfile(f.name, join(copy, filename))
-                    if move:
-                        filename = filename_format.format(**kwargs)
-                        shutil.move(f.name, join(move, filename))
+                    kwargs = deepcopy(res)
+                for key, value in kwargs.items():
+                    if isinstance(value, list) and len(value) >= 1:
+                        kwargs[key] = value[0]
+                for key, value in kwargs.items():
+                    if isinstance(value, datetime.datetime):
+                        kwargs[key] = value.strftime("%Y-%m-%d")
+                if copy:
+                    filename = filename_format.format(**kwargs)
+                    shutil.copyfile(f.name, join(copy, filename))
+                if move:
+                    filename = filename_format.format(**kwargs)
+                    shutil.move(f.name, join(move, filename))
         except Exception as e:
             logger.critical(
                 "Invoice2data failed to process %s. \nError message: %s", f.name, e
