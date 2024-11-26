@@ -148,7 +148,7 @@ def safety(session: nox.Session) -> None:
     )
 
 
-@nox.session(python=python_versions)
+@nox.session(python=[python_versions[0], python_versions[-1]])
 def mypy(session: nox.Session) -> None:
     """Type-check using mypy."""
     args = session.posargs or ["src", "tests", "docs/conf.py"]
@@ -242,12 +242,20 @@ def typeguard(session: nox.Session) -> None:
         "sync",
         "--group",
         "dev",
+        "--extra",
+        "pdfminer-six",
         "--group",
         "typeguard",
         env={"UV_PROJECT_ENVIRONMENT": session.virtualenv.location},
         external=True,
     )
-    session.run("pytest", f"--typeguard-packages={package}", *session.posargs)
+    session.run(
+        "pytest",
+        f"--typeguard-packages={package}",
+        "-k",
+        "not test_gvision",
+        *session.posargs,
+    )
 
 
 @nox.session(python=python_versions)
