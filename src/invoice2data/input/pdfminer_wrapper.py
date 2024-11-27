@@ -3,7 +3,7 @@
 from io import StringIO
 from typing import Any
 from typing import Dict
-
+from typing import Set
 
 def to_text(path: str, **kwargs: Dict[str, Any]) -> str:
     """Wrapper around `pdfminer` to extract text from PDF.
@@ -15,11 +15,11 @@ def to_text(path: str, **kwargs: Dict[str, Any]) -> str:
     Returns:
         str: Extracted text from the PDF.
     """
-    from pdfminer.converter import TextConverter
-    from pdfminer.layout import LAParams
-    from pdfminer.pdfinterp import PDFPageInterpreter
+    from pdfminer.converter import TextConverter  # type: ignore[import-not-found]
+    from pdfminer.layout import LAParams  # type: ignore[import-not-found]
+    from pdfminer.pdfinterp import PDFPageInterpreter  # type: ignore[import-not-found]
     from pdfminer.pdfinterp import PDFResourceManager
-    from pdfminer.pdfpage import PDFPage
+    from pdfminer.pdfpage import PDFPage  # type: ignore[import-not-found]
 
     rsrcmgr = PDFResourceManager()
     retstr = StringIO()
@@ -31,7 +31,7 @@ def to_text(path: str, **kwargs: Dict[str, Any]) -> str:
         password = ""
         maxpages = 0
         caching = True
-        pagenos = set()
+        pagenos : Set[int]= set()
         pages = PDFPage.get_pages(
             fp,
             pagenos,
