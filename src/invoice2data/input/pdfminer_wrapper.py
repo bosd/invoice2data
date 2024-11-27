@@ -5,6 +5,7 @@ from typing import Any
 from typing import Dict
 from typing import Set
 
+
 def to_text(path: str, **kwargs: Dict[str, Any]) -> str:
     """Wrapper around `pdfminer` to extract text from PDF.
 
@@ -31,7 +32,7 @@ def to_text(path: str, **kwargs: Dict[str, Any]) -> str:
         password = ""
         maxpages = 0
         caching = True
-        pagenos : Set[int]= set()
+        pagenos: Set[int] = set()
         pages = PDFPage.get_pages(
             fp,
             pagenos,
