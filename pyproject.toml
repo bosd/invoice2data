@@ -27,12 +27,12 @@ classifiers = [
     "Development Status :: 5 - Production/Stable",
 ]
 
-
 dependencies = [
     "click >=8.0.1",
     "dateparser >= 1.2.0",
     "PyYAML >= 6.0",
     "regex >= 2024.4.16",
+]
 
 
 [project.urls]
@@ -42,13 +42,15 @@ documentation = "https://invoice2data.readthedocs.io"
 Changelog = "https://github.com/invoice-x/invoice2data/releases"
 
 
-
 [dependency-groups]
 dev = [
+    # "coverage[toml] >= 7.6.1; python_version > '3.9'",
+    # "coverage[toml] <= 7.5.4; python_version < '3.9'",
     "coverage[toml] >= 6.2",
     "pre-commit >=2.16.0",
     "pre-commit-hooks >=4.1.0",
     "pytest >=6.2.5",
+    "pytest-mock >= 3.14.0",
     "pygments >=2.10.0",
 ]
 lint = ["ruff >=0.0.274", "pydoclint >=0.0.0"]
