@@ -242,12 +242,20 @@ def typeguard(session: nox.Session) -> None:
         "sync",
         "--group",
         "dev",
+        "--extra",
+        "pdfminer-six",
         "--group",
         "typeguard",
         env={"UV_PROJECT_ENVIRONMENT": session.virtualenv.location},
         external=True,
     )
-    session.run("pytest", f"--typeguard-packages={package}", *session.posargs)
+    session.run(
+        "pytest",
+        f"--typeguard-packages={package}",
+        "-k",
+        "not test_gvision",
+        *session.posargs,
+    )
 
 
 @nox.session(python=python_versions)
