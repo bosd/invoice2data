@@ -3,7 +3,6 @@
 Templates are initially read from .yml files and then kept as class.
 """
 
-import datetime
 import re
 import unicodedata
 from collections import OrderedDict
@@ -11,7 +10,6 @@ from logging import getLogger
 from pprint import pformat
 from typing import Any
 from typing import Dict
-from typing import Optional
 
 import dateparser  # type: ignore[import-untyped]
 
@@ -67,15 +65,20 @@ class InvoiceTemplate(OrderedDict[str, Any]):
     """
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
-        super(InvoiceTemplate, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         # Merge template-specific options with defaults
-        self.options = OPTIONS_DEFAULT.copy()
+        self.options: Dict[str, Any] = OPTIONS_DEFAULT.copy()
 
         if "options" in self:
             self.options.update(self["options"])
 
-        for lang in self.options.get("languages", []):
+        languages = self.options.get("languages", [])
+
+        if not isinstance(languages, list):
+            languages = [languages]
+
+        for lang in self.options.get("languages", []):  # type: ignore [attr-defined]
             if len(lang) != 2:
                 raise AssertionError(
                     "Error in Template %s lang code must have 2 letters"
@@ -104,8 +107,11 @@ class InvoiceTemplate(OrderedDict[str, Any]):
         if self.options["lowercase"]:
             optimized_str = optimized_str.lower()
 
+        if not isinstance(self.options.get("replace", []), list):
+            self.options["replace"] = [self.options["replace"]]
+
         # Specific replace
-        for replace in self.options["replace"]:
+        for replace in self.options.get("replace", []):
             assert len(replace) == 2, (
                 "Error in Template %s A replace should be a list of exactly 2 elements."
                 % self["template_name"]
@@ -188,7 +194,7 @@ class InvoiceTemplate(OrderedDict[str, Any]):
             amount_no_thousand_sep.replace(str(self.options["decimal_separator"]), ".")
         )
 
-    def parse_date(self, value: str) -> Optional[datetime.datetime]:  # Add type hint
+    def parse_date(self, value: str) -> Any:
         """Parses date and returns date after parsing."""
         res = dateparser.parse(
             value,
@@ -222,11 +228,11 @@ class InvoiceTemplate(OrderedDict[str, Any]):
             return float(self.parse_number(value))
         elif target_type == "date":
             return self.parse_date(value)
-        assert (
-            False
-        ), "Unknown type"  # Use assert False instead of raising AssertionError
+        elif target_type == "datetime":
+            return self.parse_date(value)
+        raise AssertionError("Unknown type")
 
-    def extract(  # Add type hints
+    def extract(
         self, optimized_str: str, invoice_file: str, input_module: Any
     ) -> Dict[str, Any]:
         """Extracts data from the optimized string using the template.
@@ -234,10 +240,10 @@ class InvoiceTemplate(OrderedDict[str, Any]):
         Args:
             optimized_str (str): The optimized string.
             invoice_file (str): The path to the invoice file.
-            input_module (str): The input module used.
+            input_module (Any): The input module used.
 
         Returns:
-            dict: The extracted data.
+            Dict[str, Any]: The extracted data.
 
         Raises:
             ValueError: If a required field could not be parsed

@@ -20,7 +20,7 @@ def ocrmypdf_available() -> bool:
         bool: True if ocrmypdf is available, False otherwise.
     """
     try:
-        import ocrmypdf  # type: ignore[import-not-found]  # Ignore import error for mypy
+        import ocrmypdf  # type: ignore[import-not-found]  # noqa: F401
     except ImportError:
         return False
     return True
@@ -37,12 +37,8 @@ OPTIONS_DEFAULT = {
 
 def to_text(
     path: str,
-    area_details: Optional[
-        Dict[str, Any]
-    ] = None,  # Use Optional for optional dictionary
-    input_reader_config: Optional[
-        Dict[str, Any]
-    ] = None,  # Use Optional for optional dictionary
+    area_details: Optional[Dict[str, Any]] = None,
+    input_reader_config: Optional[Dict[str, Any]] = None,
 ) -> str:
     """Pre-processes PDF files with ocrmypdf before PDFtotext parsing.
 
@@ -77,7 +73,7 @@ def to_text(
 
 def pre_process_pdf(
     path: str, pre_conf: Optional[Dict[str, Any]] = None
-) -> Optional[str]:  # Use Optional for optional dictionary and return type
+) -> Optional[str]:
     """Pre-processes PDF files with ocrmypdf before PDFtotext parsing.
 
     Uses a temporary file for the output by default.
@@ -94,7 +90,7 @@ def pre_process_pdf(
         logger.warning("ocrmypdf is not available. Install with 'pip install ocrmypdf'")
         return None
 
-    import ocrmypdf  # Import ocrmypdf here
+    import ocrmypdf
 
     ocrmypdf_conf = OPTIONS_DEFAULT.copy()
     if pre_conf:

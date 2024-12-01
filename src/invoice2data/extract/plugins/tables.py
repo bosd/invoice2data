@@ -1,10 +1,12 @@
 """Plugin to extract tables from an invoice."""
 
 import re
+from collections import OrderedDict
 from logging import getLogger
 from typing import Any
 from typing import Dict
 from typing import Optional
+
 
 
 logger = getLogger(__name__)
@@ -12,7 +14,9 @@ logger = getLogger(__name__)
 DEFAULT_OPTIONS = {"field_separator": r"\s+", "line_separator": r"\n"}
 
 
-def extract(self, content: str, output: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+def extract(
+    self: OrderedDict[str, Any], content: str, output: Dict[str, Any]
+) -> Optional[Dict[str, Any]]:
     """Try to extract tables from an invoice.
 
     Args:
@@ -45,7 +49,8 @@ def extract(self, content: str, output: Dict[str, Any]) -> Optional[Dict[str, An
 
 
 def _extract_and_validate_settings(
-    self, table: Dict[str, Any]
+    self: OrderedDict[str, Any],
+    table: Dict[str, Any],
 ) -> Optional[Dict[str, Any]]:
     """Extract and validate table settings.
 
@@ -97,7 +102,7 @@ def _extract_table_body(content: str, table: Dict[str, Any]) -> Optional[str]:
 
 
 def _process_table_lines(
-    self,
+    self: OrderedDict[str, Any],
     table: Dict[str, Any],
     table_body: str,
     output: Dict[str, Any],
@@ -113,7 +118,7 @@ def _process_table_lines(
     Returns:
         bool: True if processing is successful, False if date parsing fails.
     """
-    types = table.get("types", [])
+    types = table.get("types", {})
     no_match_found = True
 
     for line in re.split(table["line_separator"], table_body):
@@ -137,19 +142,19 @@ def _process_table_lines(
 
 
 def _process_table_line(
-    self,
+    self: OrderedDict[str, Any],
     table: Dict[str, Any],
     line: str,
-    types: list,
+    types: Dict[str, Any],
     output: Dict[str, Any],
 ) -> bool:
     """Process a single line within the table body.
 
     Args:
-        self (InvoiceTemplate): The current instance of the class.  # noqa: DOC103
+        self (InvoiceTemplate): The current instance of the class.
         table (Dict[str, Any]): The validated table settings.
         line (str): A single line from the table body.
-        types (list): A list of type coercion rules.
+        types (Dict[str, Any]): A dictionary of type coercion rules.
         output (Dict[str, Any]): A dictionary to store the extracted data.
 
     Returns:
@@ -173,14 +178,15 @@ def _process_table_line(
             )
 
             if field.startswith("date") or field.endswith("date"):
-                output[field] = self.parse_date(value)
+                output[field] = self.parse_date(value)  # type: ignore[attr-defined]
                 if not output[field]:
                     logger.error("Date parsing failed on date *%s*", value)
                     return False
             elif field.startswith("amount"):
-                output[field] = self.parse_number(value)
+                output[field] = self.parse_number(value)  # type: ignore[attr-defined]
             elif field in types:
-                output[field] = self.coerce_type(value, types[field])
+                # Access types as a dictionary
+                output[field] = self.coerce_type(value, types[field])  # type: ignore[attr-defined]
             else:
                 output[field] = value
 

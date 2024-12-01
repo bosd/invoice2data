@@ -12,17 +12,21 @@ from subprocess import CalledProcessError
 from subprocess import Popen
 from subprocess import TimeoutExpired
 from subprocess import run
+from typing import Any
+from typing import Dict
+from typing import Optional
+from typing import Set
 
 
 logger = getLogger(__name__)
 
 
-def to_text(path: str, area_details: dict = None) -> str:
+def to_text(path: str, area_details: Optional[Dict[str, Any]] = None) -> str:
     """Extract text from image using tesseract OCR.
 
     Args:
         path (str): Path to the image file.
-        area_details (dict, optional):
+        area_details (Optional[Dict[str, Any]], optional):
             Specific area in the image to extract text from.
             Defaults to None (extract from the entire image).
 
@@ -156,14 +160,14 @@ def to_text(path: str, area_details: dict = None) -> str:
     return extracted_str.decode("utf-8")
 
 
-def get_languages():
-    def lang_error(output):
-        logger.warning = (
+def get_languages() -> str:
+    def lang_error(output: str) -> str:
+        logger.warning(  # Use logger.warning instead of assigning to it
             "Tesseract failed to report available languages.\n"
             "Output from Tesseract:\n"
             "-----------\n"
         )
-        return
+        return output  # Add return statement
 
     logger.debug("get lang called")
     args_tess = ["tesseract", "--list-langs"]
@@ -183,5 +187,5 @@ def get_languages():
         if line.startswith("Error"):
             raise OSError(lang_error(output))
     _header, *rest = output.splitlines()
-    langlist = {lang.strip() for lang in rest}
+    langlist: Set[str] = {lang.strip() for lang in rest}
     return "+".join(map(str, langlist))

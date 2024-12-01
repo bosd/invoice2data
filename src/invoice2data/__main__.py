@@ -73,7 +73,7 @@ class ColorLogFormatter(logging.Formatter):
         "%(prefix)s%(levelname)s:%(suffix)s%(name)s:%(prefix)s %(message)s%(suffix)s"
     )
 
-    LOG_LEVEL_COLOR: ClassVar = {  # Annotate with ClassVar
+    LOG_LEVEL_COLOR: ClassVar = {
         "DEBUG": {"prefix": "", "suffix": Color.END},
         "INFO": {"prefix": Color.BLUE, "suffix": Color.END},
         "WARNING": {"prefix": Color.YELLOW_BACK, "suffix": Color.END},
@@ -215,8 +215,6 @@ def extract_data_fallback_ocrmypdf(
     templates_matched.sort(key=lambda k: k["priority"], reverse=True)
 
     if templates_matched:
-        result = templates_matched[0].extract(extracted_str, invoicefile, input_module)
-
         return extracted_str, invoicefile, templates_matched
     else:
         # Return empty list if no template is matched
@@ -290,7 +288,7 @@ def main(
     filename_format: str,
     template_folder: Optional[str],
     exclude_built_in_templates: bool,
-    input_files: List[Any],
+    input_files: Tuple[Any, ...],
 ) -> None:
     """Extract structured data from PDF files and save to CSV or JSON."""
     if debug:
