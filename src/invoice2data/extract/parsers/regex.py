@@ -31,14 +31,14 @@ def parse(
     """Parse a field from the content using regular expressions.
 
     Args:
-        template: The template object.
+        template (Any): The template object.
         field (str): The name of the field to extract.
         settings (Dict[str, Any]): The settings for the field extraction.
         content (str): The text content to parse.
         legacy (bool, optional): Whether to use legacy parsing. Defaults to False.
 
     Returns:
-        Optional[Union[str, float, list]]: The extracted value(s) or None if parsing fails.
+        Any: The extracted value(s) or None if parsing fails.
     """
     if "regex" not in settings:
         logger.warning('Field "%s" doesn\'t have regex specified', field)

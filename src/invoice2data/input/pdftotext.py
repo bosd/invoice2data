@@ -11,7 +11,7 @@ def to_text(path: str, area_details: Optional[Dict[str, Any]] = None) -> str:
 
     Args:
         path (str): Path to the PDF file.
-        area_details (dict, optional):
+        area_details (Optional[Dict[str, Any]], optional):
             Specific area in the PDF to extract text from.
             Defaults to None (extract from the entire page).
 

@@ -37,7 +37,7 @@ def ordered_load(
 
     Args:
         stream (str): JSON data string.
-        loader (Callable, optional): JSON loader function. Defaults to json.loads.
+        loader (Callable[[str], Any], optional): JSON loader function. Defaults to json.loads.
 
     Returns:
         List[InvoiceTemplate]: List of InvoiceTemplate objects.
@@ -65,19 +65,18 @@ def read_templates(folder: Optional[str] = None) -> List[InvoiceTemplate]:
     Use built-in templates if no folder is set.
 
     Args:
-        folder (str, optional): User-defined folder where templates are stored.
+        folder (Optional[str]): User-defined folder where templates are stored.
                                 If None, uses built-in templates.
 
     Returns:
         List[InvoiceTemplate]: List of InvoiceTemplate objects.
 
     Examples:
-        >>> read_template("home/duskybomb/invoice-templates/")
-        [InvoiceTemplate(...)]
-
-        >>> my_template = InvoiceTemplate(...)
-        >>> extract_data("invoice2data/test/pdfs/oyo.pdf", my_template, pdftotext)
-        {...}
+        >>> templates = read_templates("./src/invoice2data/extract/templates/au")
+        >>> len(templates)  # Check the number of loaded templates
+        2
+        >>> templates[0]['template_name']  # Check the name of the first template
+                'au.com.opal.yml'
     """
     output = []
     if folder is None:
