@@ -17,17 +17,17 @@ def defusedxml_available() -> bool:
     return importlib.util.find_spec("defusedxml") is not None
 
 
-def prettify(elem: ElementTree.Element) -> str:
+def prettify(elem: ElementTree.Element) -> Any:
     """Return a pretty-printed XML string for the Element.
 
     Args:
         elem (ElementTree.Element): The Element to be pretty-printed.
 
     Returns:
-        str: A pretty-printed XML string.
+        Any: A pretty-printed XML string.
     """
     if defusedxml_available():
-        from defusedxml import minidom
+        from defusedxml import minidom  # type: ignore[import-not-found]
     else:
         from xml.dom import minidom
 
@@ -64,14 +64,16 @@ def dict_to_tags(
                 dict_to_tags(item, e, date_format)
 
 
-def write_to_file(data: List[Dict], path: str, date_format: str = "%Y-%m-%d") -> None:
+def write_to_file(
+    data: List[Dict[str, Any]], path: str, date_format: str = "%Y-%m-%d"
+) -> None:
     """Export extracted fields to xml.
 
     Appends .xml to path if missing and generates xml file in specified directory,
     if not then in root.
 
     Args:
-        data (List[Dict]): List of dictionaries containing extracted fields.
+        data (List[Dict[str, Any]]): List of dictionaries containing extracted fields.
         path (str): Path to save the generated XML file.
         date_format (str, optional): Date format used in generated file.
             Defaults to "%Y-%m-%d".
@@ -81,7 +83,7 @@ def write_to_file(data: List[Dict], path: str, date_format: str = "%Y-%m-%d") ->
 
     Examples:
         >>> from invoice2data.output import to_xml
-        >>> to_xml.write_to_file(data, "/exported_xml/invoice.xml")
+        >>> data = [{'amount': 123.45, 'date': datetime.datetime(2024, 1, 1)}]
         >>> to_xml.write_to_file(data, "invoice.xml")
     """
     if not path.endswith(".xml"):

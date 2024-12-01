@@ -2,14 +2,15 @@
 
 import logging
 import os
+from typing import Any
 
 
 logger = logging.getLogger(__name__)
 
 
 try:
-    import google  # noqa
-    from google.cloud import storage
+    import google  # type: ignore[import-not-found] # noqa
+    from google.cloud import storage  # type: ignore[import-not-found]
     from google.cloud import vision
 
     GOOGLE_CLOUD_AVAILABLE = True
@@ -17,13 +18,13 @@ except ImportError:
     GOOGLE_CLOUD_AVAILABLE = False
 
 
-def have_google_cloud():
+def have_google_cloud() -> bool:
     return GOOGLE_CLOUD_AVAILABLE
 
 
 def to_text(
     path: str, bucket_name: str = "cloud-vision-84893", language: str = "en"
-) -> str:
+) -> Any:
     """Sends PDF files to Google Cloud Vision for OCR.
 
     Before using invoice2data, make sure you have the auth JSON path set as
@@ -36,7 +37,7 @@ def to_text(
         language (str, optional): Language to use for OCR. Defaults to "en".
 
     Returns:
-        str: Extracted text from the image in JPG or PNG format.
+        Any: Extracted text from the image in JPG or PNG format.
     """
     if not have_google_cloud():
         logger.warning(

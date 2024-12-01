@@ -13,6 +13,8 @@ from typing import Optional
 from typing import Union
 
 
+# from ..invoice_template import InvoiceTemplate  # type: ignore[unused-ignore]
+
 logger = getLogger(__name__)
 
 DEFAULT_OPTIONS = {"line_separator": r"\n"}
@@ -40,8 +42,12 @@ def parse_line(patterns: Union[str, List[str]], line: str) -> Optional[Match[str
     return None
 
 
-def parse_block(  # noqa: RUF100 C901
-    template: Dict[str, Any], field: str, settings: Dict[str, Any], content: str
+def parse_block(
+    # noqa: RUF100 C901
+    template: Dict[str, Any],
+    field: str,
+    settings: Dict[str, Any],
+    content: str,
 ) -> List[Dict[str, Any]]:
     """Parse a block of lines to extract data.
 
@@ -58,7 +64,7 @@ def parse_block(  # noqa: RUF100 C901
 
     Returns:
         List[Dict[str, Any]]: A list of dictionaries, where each dictionary
-                               represents an extracted row with field-value pairs.
+                                represents an extracted row with field-value pairs.
     """
     # Validate settings
     assert "line" in settings, (
@@ -67,8 +73,8 @@ def parse_block(  # noqa: RUF100 C901
 
     logger.debug("START lines block content ========================\n%s", content)
     logger.debug("END lines block content ==========================")
-    lines = []
-    current_row = {}
+    lines: List[Dict[str, Any]] = []
+    current_row: Dict[str, Any] = {}
 
     # We assume that structured line fields may either be individual lines or
     # they may be main line items with descriptions or details following beneath.
@@ -157,12 +163,27 @@ def parse_block(  # noqa: RUF100 C901
     for row in lines:
         for name in row.keys():
             if name in types:
-                row[name] = template.coerce_type(row[name], types[name])
-
+                row[name] = template.coerce_type(row[name], types[name])  # type: ignore[attr-defined]
     return lines
 
 
-def parse_by_rule(template, field, rule, content):
+def parse_by_rule(
+    template: Dict[str, Any],
+    field: str,
+    rule: Dict[str, Any],
+    content: str,
+) -> List[Dict[str, Any]]:
+    """Parse lines from a block of text based on a rule.
+
+    Args:
+        template (Dict[str, Any]): The template dictionary.
+        field (str): The field name.
+        rule (Dict[str, Any]): The rule dictionary.
+        content (str): The text content to parse.
+
+    Returns:
+        List[Dict[str, Any]]: The parsed lines.
+    """
     # First apply default options.
     settings = DEFAULT_OPTIONS.copy()
     settings.update(rule)
@@ -206,7 +227,23 @@ def parse_by_rule(template, field, rule, content):
     return lines
 
 
-def parse(template, field, settings, content):
+def parse(
+    template: Dict[str, Any],
+    field: str,
+    settings: Dict[str, Any],
+    content: str,
+) -> List[Dict[str, Any]]:
+    """Parse lines from the content based on the given settings.
+
+    Args:
+        template (Dict[str, Any]): The template dictionary.
+        field (str): The field name.
+        settings (Dict[str, Any]): The settings dictionary.
+        content (str): The text content to parse.
+
+    Returns:
+        List[Dict[str, Any]]: The parsed lines.
+    """
     if "rules" in settings:
         # One field can have multiple sets of line-parsing rules
         rules = settings["rules"]
@@ -225,12 +262,23 @@ def parse(template, field, settings, content):
     return lines
 
 
-def parse_current_row(match, current_row):
-    # Parse the current row data
-    for field, value in match.groupdict().items():
-        current_row[field] = "%s%s%s" % (
-            current_row.get(field, ""),
-            (current_row.get(field, "") and "\n") or "",
-            value.strip() if value else "",
-        )
+def parse_current_row(
+    match: Optional[Match[str]], current_row: Dict[str, Any]
+) -> Dict[str, Any]:
+    """Parse the current row data.
+
+    Args:
+        match (Optional[Match[str]]): The match object.
+        current_row (Dict[str, Any]): The current row dictionary.
+
+    Returns:
+        Dict[str, Any]: The updated current row dictionary.
+    """
+    if match:
+        for field, value in match.groupdict().items():
+            current_row[field] = "%s%s%s" % (
+                current_row.get(field, ""),
+                (current_row.get(field, "") and "\n") or "",
+                value.strip() if value else "",
+            )
     return current_row

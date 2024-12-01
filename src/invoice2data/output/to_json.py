@@ -26,14 +26,16 @@ def format_item(item: Any, date_format: str) -> Any:
     return item
 
 
-def write_to_file(data: List[Dict], path: str, date_format: str = "%Y-%m-%d") -> None:
+def write_to_file(
+    data: List[Dict[str, Any]], path: str, date_format: str = "%Y-%m-%d"
+) -> None:
     """Export extracted fields to JSON.
 
     Appends .json to path if missing and generates JSON file in
     the specified directory, otherwise in the current directory.
 
     Args:
-        data (List[Dict]): Dictionary of extracted fields.
+        data (List[Dict[str, Any]]): Dictionary of extracted fields.
         path (str): Directory to save the generated JSON file.
         date_format (str): Date format used in the generated file.
                             Defaults to "%Y-%m-%d".
@@ -43,8 +45,8 @@ def write_to_file(data: List[Dict], path: str, date_format: str = "%Y-%m-%d") ->
 
     Examples:
         >>> from invoice2data.output import to_json
-        >>> to_json.write_to_file(data, "/exported_json/invoice.json")
-        >>> to_json.write_to_file(data, "invoice.json") 1
+        >>> data = [{'amount': 123.45, 'date': datetime.datetime(2024, 1, 1)}]
+        >>> to_json.write_to_file(data, "invoice.json")
     """
     for invoice in data:
         for k, v in invoice.items():
