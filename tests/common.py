@@ -2,22 +2,22 @@
 
 import logging
 import os
+from typing import List
 
 
 # Reduce log level of various modules
 logging.getLogger("pdfminer").setLevel(logging.WARNING)
 
 
-def get_sample_files(extension: str, exclude_input_specific: bool = True) -> list:
-    """Retrieves sample files with the specified extension from the 'compare' directory.
+def get_sample_files(extension: str, exclude_input_specific: bool = True) -> List[str]:
+    """Get the  sample files.
 
     Args:
-        extension (str): The file extension to filter by.
-        exclude_input_specific (bool, optional): Whether to exclude files that require
-                                                specific input modules. Defaults to True.
+        extension (str): The extension of the files to get.
+        exclude_input_specific (bool, optional): Whether to exclude input-specific files. Defaults to True.
 
     Returns:
-        list: A list of file paths matching the specified criteria.
+        List[str]: A list of paths to the sample files.
     """
     compare_files = []
     compare_folder = os.path.dirname("./tests/compare")
@@ -30,15 +30,15 @@ def get_sample_files(extension: str, exclude_input_specific: bool = True) -> lis
     return compare_files
 
 
-def exclude_template(test_list: list, exclude_list: list) -> list:
-    """Removes files matching the exclude_list from the test_list.
+def exclude_template(test_list: List[str], exclude_list: List[str]) -> List[str]:
+    """Exclude specific templates from the list.
 
     Args:
-        test_list (list): The list of file paths to filter.
-        exclude_list (list): The list of file names to exclude.
+        test_list (List[str]): The list of templates to filter.
+        exclude_list (List[str]): The list of templates to exclude.
 
     Returns:
-        list: The filtered list of file paths.
+        List[str]: The filtered list of templates.
     """
     return [
         elem

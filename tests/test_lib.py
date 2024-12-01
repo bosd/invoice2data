@@ -45,7 +45,7 @@ needs_pdfplumber = unittest.skipIf(
 )
 
 
-def _extract_data_for_export() -> List[Dict[str, Any]]:  # Added return type hint
+def _extract_data_for_export() -> List[Dict[str, Any]]:
     pdf_files = get_sample_files(".pdf")
     for file in pdf_files:
         if file.endswith("oyo.pdf"):
@@ -55,7 +55,7 @@ def _extract_data_for_export() -> List[Dict[str, Any]]:  # Added return type hin
 
 
 class TestLIB(unittest.TestCase):
-    def test_extract_data(self) -> None:  # Added return type hint
+    def test_extract_data(self) -> None:
         pdf_files = get_sample_files(".pdf")
         for file in pdf_files:
             res = extract_data(file, [])
@@ -64,7 +64,7 @@ class TestLIB(unittest.TestCase):
             )  # Check why logger.info is not working, for the time being using print
             self.assertTrue(isinstance(res, dict), "return is not a dict")
 
-    def test_extract_data_pdftotext(self) -> None:  # Added return type hint
+    def test_extract_data_pdftotext(self) -> None:
         pdf_files = get_sample_files(".pdf")
         for file in pdf_files:
             try:
@@ -77,7 +77,7 @@ class TestLIB(unittest.TestCase):
                 self.assertTrue(False, "pdftotext is not installed")
             self.assertTrue(type(res) is dict, "return is not a dict")
 
-    def test_output_json(self) -> None:  # Added return type hint
+    def test_output_json(self) -> None:
         dump_dict = _extract_data_for_export()
         print(dump_dict)
         file_path = "invoices-output-for-test.json"
@@ -85,7 +85,7 @@ class TestLIB(unittest.TestCase):
         self.assertTrue(os.path.exists(file_path), "File not made")
         os.remove(file_path)
 
-    def test_output_xml(self) -> None:  # Added return type hint
+    def test_output_xml(self) -> None:
         dump_dict = _extract_data_for_export()
         print(dump_dict)
         file_path = "invoices-output-for-test.xml"
@@ -93,7 +93,7 @@ class TestLIB(unittest.TestCase):
         self.assertTrue(os.path.exists(file_path), "File not made")
         os.remove(file_path)
 
-    def test_output_csv(self) -> None:  # Added return type hint
+    def test_output_csv(self) -> None:
         dump_dict = _extract_data_for_export()
         print(dump_dict)
         file_path = "invoices-output-for-test.csv"
@@ -101,16 +101,14 @@ class TestLIB(unittest.TestCase):
         self.assertTrue(os.path.exists(file_path), "File not made")
         os.remove(file_path)
 
-    def test_extract_data_pdfminer(self) -> None:  # Added return type hint
+    def test_extract_data_pdfminer(self) -> None:
         pdf_files = get_sample_files(".pdf")
         for file in pdf_files:
             if file.endswith("NetpresseInvoice.pdf"):
                 print("Testing pdfminer with file", file)
                 try:
-                    res: Union[str, Dict[str, Any]] = (
-                        extract_data(  # Added type hint for res
-                            file, None, pdfminer_wrapper
-                        )
+                    res: Union[str, Dict[str, Any]] = extract_data(
+                        file, None, pdfminer_wrapper
                     )
                     print(res)
                 except ImportError:
@@ -118,7 +116,7 @@ class TestLIB(unittest.TestCase):
                     self.assertTrue(type(res) is str, "return is not a string")
 
     @needs_pdfplumber
-    def test_extract_data_pdfplumber(self) -> None:  # Added return type hint
+    def test_extract_data_pdfplumber(self) -> None:
         pdf_files = get_sample_files(".pdf")
         for file in pdf_files:
             if not file.endswith("FlipkartInvoice.pdf"):
@@ -126,7 +124,7 @@ class TestLIB(unittest.TestCase):
             print("Testing pdfplumber with file", file)
             extract_data(file, [], pdfplumber)
 
-    def test_tesseract_for_return(self) -> None:  # Added return type hint
+    def test_tesseract_for_return(self) -> None:
         png_files = get_sample_files(".png")
         for file in png_files:
             if tesseract.to_text(file) is None:
@@ -134,13 +132,13 @@ class TestLIB(unittest.TestCase):
             else:
                 self.assertTrue(True)
 
-    def test_ocrmypdf_available_unavailable(self) -> None:  # Added return type hint
+    def test_ocrmypdf_available_unavailable(self) -> None:
         with mock.patch.dict("sys.modules", {"ocrmypdf": None}):
             have = ocrmypdf.ocrmypdf_available()
             print("ocrmypdf should not be available have is %s" % have)
             self.assertFalse(have, "ocrmypdf is NOT installed")
 
-    def test_haveocrmypdf_available(self) -> None:  # Added return type hint
+    def test_haveocrmypdf_available(self) -> None:
         with mock.patch.dict("sys.modules", {"ocrmypdf": True}):
             have = ocrmypdf.ocrmypdf_available()
             print("ocrmypdf should be available have is %s" % have)

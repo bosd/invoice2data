@@ -6,10 +6,10 @@ from unittest.mock import MagicMock
 # Add the src directory to the Python path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from invoice2data.input import gvision  # Now the import should work
+from invoice2data.input import gvision
 
 
-def test_to_text(mocker):
+def test_to_text(mocker: "pytest_mock.MockerFixture") -> None:  # type: ignore [name-defined] # noqa
     # Mock the specific classes within google.cloud
     mock_vision_client = mocker.patch(
         "invoice2data.input.gvision.google.cloud.vision.ImageAnnotatorClient"
@@ -55,7 +55,7 @@ def test_to_text(mocker):
     assert extracted_text == "test text"
 
 
-def test_to_text_existing_result(mocker):
+def test_to_text_existing_result(mocker: "pytest_mock.MockerFixture") -> None:  # type: ignore [name-defined] # noqa
     # Mock the specific classes within google.cloud
     mock_storage_client = mocker.patch(
         "invoice2data.input.gvision.google.cloud.storage.Client"
