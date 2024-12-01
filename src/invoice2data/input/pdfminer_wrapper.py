@@ -1,33 +1,26 @@
-# -*- coding: utf-8 -*-
-def to_text(path):
-    """Wrapper around `pdfminer.six`.
+"""pdminer input module for invoice2data."""
 
-    Parameters
-    ----------
-    path : str
-        path of electronic invoice in PDF
+from io import StringIO
+from typing import Any
+from typing import Dict
+from typing import Set
 
-    Returns
-    -------
-    str : str
-        returns extracted text from pdf
 
+def to_text(path: str, **kwargs: Dict[str, Any]) -> str:
+    """Wrapper around `pdfminer` to extract text from PDF.
+
+    Args:
+        path (str): Path to the PDF file.
+        **kwargs (Dict[str, Any]): Keyword arguments to be passed to `pdfminer`.
+
+    Returns:
+        str: Extracted text from the PDF.
     """
-
-    try:
-        # python 2
-        from StringIO import StringIO
-        import sys
-
-        reload(sys)  # noqa: F821
-        sys.setdefaultencoding("utf8")
-    except ImportError:
-        from io import StringIO
-
-    from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
-    from pdfminer.converter import TextConverter
-    from pdfminer.layout import LAParams
-    from pdfminer.pdfpage import PDFPage
+    from pdfminer.converter import TextConverter  # type: ignore[import-not-found]
+    from pdfminer.layout import LAParams  # type: ignore[import-not-found]
+    from pdfminer.pdfinterp import PDFPageInterpreter  # type: ignore[import-not-found]
+    from pdfminer.pdfinterp import PDFResourceManager
+    from pdfminer.pdfpage import PDFPage  # type: ignore[import-not-found]
 
     rsrcmgr = PDFResourceManager()
     retstr = StringIO()
@@ -39,7 +32,7 @@ def to_text(path):
         password = ""
         maxpages = 0
         caching = True
-        pagenos = set()
+        pagenos: Set[int] = set()
         pages = PDFPage.get_pages(
             fp,
             pagenos,

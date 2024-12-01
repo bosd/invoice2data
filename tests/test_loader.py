@@ -1,16 +1,18 @@
-import shutil
-from pathlib import Path
-
 import os
-import pytest
+import shutil
 import unittest
+from pathlib import Path
+from typing import Generator
+
+import pytest
 
 from invoice2data.extract.invoice_template import InvoiceTemplate
-from invoice2data.extract.loader import read_templates, ordered_load
+from invoice2data.extract.loader import ordered_load
+from invoice2data.extract.loader import read_templates
 
 
 @pytest.fixture
-def templatedirectory() -> Path:
+def templatedirectory() -> Generator[Path, None, None]:
     templatedirectory = Path("tests/templatedirectory/")
     templatedirectory.mkdir(parents=True)
 
@@ -19,7 +21,7 @@ def templatedirectory() -> Path:
     shutil.rmtree(templatedirectory, ignore_errors=True)
 
 
-def test_default_templates_are_loaded():
+def test_default_templates_are_loaded() -> None:
     templates = read_templates()
 
     builtin_tpl_folder = "./src/invoice2data/extract/templates"
@@ -31,7 +33,7 @@ def test_default_templates_are_loaded():
     assert all(isinstance(template, InvoiceTemplate) for template in templates)
 
 
-def test_templates_stream_loader():
+def test_templates_stream_loader() -> None:
     tpl_stream = (
         '[{"issuer":"first biz", "name": "first template", "department":"purchase", "parser":"static", "value":'
         ' "NL82338015B01", "keywords": ["Receipt", "va.nl"]}, {"issuer":"second biz", "name": "2nd template",'
@@ -46,7 +48,7 @@ def test_templates_stream_loader():
 
 
 class MyTestCase(unittest.TestCase):
-    def test_templates_invalid_stream_loader(self):
+    def test_templates_invalid_stream_loader(self) -> None:
         invalid_tpl_stream = (
             ',,,[{"issuer":"first biz", "name": "first template", "department":"purchase", "parser":"static", "value":'
             ' "NL82338015B01", "keywords": ["Receipt", "va.nl"]}, {"issuer":"second biz", "name": "2nd template",'
@@ -60,13 +62,13 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(
             cm.output,
             [
-                "WARNING:invoice2data.extract.loader:json Loader Failed to load template stream\nExpecting value: line"
+                "WARNING:invoice2data.extract.loader:JSON Loader Failed to load template stream\nExpecting value: line"
                 " 1 column 1 (char 0)"
             ],
         )
 
 
-def test_default_templates_and_stream_loaded():
+def test_default_templates_and_stream_loaded() -> None:
     tpl_stream = (
         '[{"issuer":"first biz", "name": "first template", "department":"purchase", "parser":"static", "value":'
         ' "NL82338015B01", "keywords": ["Receipt", "va.nl"]}, {"issuer":"second biz", "name": "2nd template",'
@@ -87,7 +89,9 @@ def test_default_templates_and_stream_loaded():
     print(templates)
 
 
-def test_template_with_missing_keywords_is_not_loaded(templatedirectory: Path):
+def test_template_with_missing_keywords_is_not_loaded(
+    templatedirectory: Path,
+) -> None:
     yamlfile = templatedirectory / "template_with_missing_keywords.yml"
     yamlfile.write_text(template_with_missing_keywords, encoding="utf-8")
 
@@ -95,7 +99,7 @@ def test_template_with_missing_keywords_is_not_loaded(templatedirectory: Path):
     assert templates == []
 
 
-def test_template_name_is_yaml_filename(templatedirectory: Path):
+def test_template_name_is_yaml_filename(templatedirectory: Path) -> None:
     yamlfile = templatedirectory / "thisnameisimportant.yml"
     yamlfile.write_text(template_with_single_special_char, encoding="utf-8")
 
@@ -104,7 +108,9 @@ def test_template_name_is_yaml_filename(templatedirectory: Path):
     assert templates[0]["template_name"] == "thisnameisimportant.yml"
 
 
-def test_template_with_single_specialchar_is_loaded(templatedirectory: Path):
+def test_template_with_single_specialchar_is_loaded(
+    templatedirectory: Path,
+) -> None:
     yamlfile = templatedirectory / "specialchartemplate.yml"
     yamlfile.write_text(template_with_single_special_char, encoding="utf-8")
 
@@ -113,7 +119,7 @@ def test_template_with_single_specialchar_is_loaded(templatedirectory: Path):
     assert templates[0]["fields"]["single_specialchar"]["value"] == "ä"
 
 
-def test_template_with_keyword_is_not_list(templatedirectory: Path):
+def test_template_with_keyword_is_not_list(templatedirectory: Path) -> None:
     yamlfile = templatedirectory / "keywordnotlist.yml"
     yamlfile.write_text(template_keyword_not_list, encoding="utf-8")
 
@@ -121,7 +127,9 @@ def test_template_with_keyword_is_not_list(templatedirectory: Path):
     assert tpl[0]["keywords"] == ["Basic Test"]
 
 
-def test_template_with_exclude_keyword_is_not_list(templatedirectory: Path):
+def test_template_with_exclude_keyword_is_not_list(
+    templatedirectory: Path,
+) -> None:
     yamlfile = templatedirectory / "excludekeywordnotlist.yml"
     yamlfile.write_text(template_exclude_keyword_not_list, encoding="utf-8")
 
@@ -129,7 +137,7 @@ def test_template_with_exclude_keyword_is_not_list(templatedirectory: Path):
     assert tpl[0]["exclude_keywords"] == ["Exclude_this"]
 
 
-def test_template_bad_yaml_format_not_loaded(templatedirectory: Path):
+def test_template_bad_yaml_format_not_loaded(templatedirectory: Path) -> None:
     yamlfile = templatedirectory / "template_bad_yaml.yml"
     yamlfile.write_text(template_bad_yaml, encoding="utf-8")
 
@@ -140,7 +148,7 @@ def test_template_bad_yaml_format_not_loaded(templatedirectory: Path):
 template_with_missing_keywords = """
 fields:
   foo:
-    parser: static
+   parser: static
     value: bar
 """
 
