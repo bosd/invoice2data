@@ -1,11 +1,12 @@
 """Plugin to extract tables from an invoice."""
 
-import re
 from collections import OrderedDict
 from logging import getLogger
 from typing import Any
 from typing import Dict
 from typing import Optional
+
+import regex as re  # type: ignore[import-untyped]
 
 
 logger = getLogger(__name__)
