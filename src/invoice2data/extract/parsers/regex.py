@@ -12,12 +12,13 @@ For more detailed parsing "type" and "group" settings can be specified.
 """
 
 import logging
-import re
 from collections import OrderedDict
 from typing import Any
 from typing import Dict
 from typing import List
 from typing import Optional
+
+import regex as re  # type: ignore[import-untyped]
 
 
 logger = logging.getLogger(__name__)
@@ -70,16 +71,19 @@ def _extract_matches(settings: Dict[str, Any], content: str) -> Optional[List[An
         regexes = [settings["regex"]]
 
     result = []
-    for regex in regexes:
-        if not isinstance(regex, str):
+    for regex_str in regexes:
+        if not isinstance(regex_str, str):
             logger.warning(
                 'Field "%s" regex is not a string (%s)',
                 settings.get("field", ""),
-                str(regex),
+                str(regex_str),
             )
             continue
 
-        matches = re.findall(regex, content)
+        regex_compiled = re.compile(regex_str)
+
+        matches = regex_compiled.findall(content)
+
         logger.debug(
             "field=\033[1m\033[93m%s\033[0m | regex=\033[36m%s\033[0m | matches=\033[1m\033[92m%s\033[0m",
             settings.get("field", ""),
@@ -90,7 +94,7 @@ def _extract_matches(settings: Dict[str, Any], content: str) -> Optional[List[An
             for match in matches:
                 if isinstance(match, tuple):
                     logger.warning(
-                        "Regex can't contain multiple capturing groups %s", regex
+                        "Regex can't contain multiple capturing groups %s", regex_str
                     )
                     return None
             result += matches
