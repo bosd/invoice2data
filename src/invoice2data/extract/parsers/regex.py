@@ -18,7 +18,7 @@ from typing import Dict
 from typing import List
 from typing import Optional
 
-import regex as re  # type: ignore[import-untyped]
+import regex  # type: ignore[import-untyped]
 
 
 logger = logging.getLogger(__name__)
@@ -80,7 +80,7 @@ def _extract_matches(settings: Dict[str, Any], content: str) -> Optional[List[An
             )
             continue
 
-        regex_compiled = re.compile(regex_str)
+        regex_compiled = regex.compile(regex_str)
 
         matches = regex_compiled.findall(content)
 
