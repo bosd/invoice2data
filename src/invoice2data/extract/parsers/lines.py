@@ -7,12 +7,10 @@ from logging import getLogger
 from typing import Any
 from typing import Dict
 from typing import List
-from typing import Match
 from typing import Optional
 from typing import Union
-from typing import cast
 
-import regex  # type: ignore[import-untyped]
+import regex as re  # type: ignore[import-untyped]
 
 
 # from ..invoice_template import InvoiceTemplate  # type: ignore[unused-ignore]
@@ -22,7 +20,7 @@ logger = getLogger(__name__)
 DEFAULT_OPTIONS = {"line_separator": r"\n"}
 
 
-def parse_line(patterns: Union[str, List[str]], line: str) -> Optional[Match[str]]:
+def parse_line(patterns: Union[str, List[str]], line: str) -> Optional[Any]:
     """Parse a line using a given pattern or list of patterns.
 
     This function searches for a match in the given line using the provided
@@ -34,13 +32,12 @@ def parse_line(patterns: Union[str, List[str]], line: str) -> Optional[Match[str
         line (str): The line to parse.
 
     Returns:
-        Optional[Match[str]]: A match object if a match is found, otherwise None.
+        Optional[Any]: A match object if a match is found, otherwise None.
     """
     patterns = patterns if isinstance(patterns, list) else [patterns]
     for pattern in patterns:
-        match = regex.search(pattern, line)
+        match = re.search(pattern, line)
         if match:
-            # return cast(Match[str], match)
             return match
     return None
 
@@ -96,7 +93,7 @@ def parse_block(  # noqa: RUF100 C901
     # As we enter the loop, we set the boolean for first_line being found to False,
     # This indicates the we are looking for the first_line pattern
     first_line_found = False
-    for line in regex.split(settings["line_separator"], content):
+    for line in re.split(settings["line_separator"], content):
         # If the line has empty lines in it , skip them
         if not line.strip("").strip("\n").strip("\r") or not line:
             continue
@@ -139,11 +136,11 @@ def parse_block(  # noqa: RUF100 C901
                 if isinstance(settings["skip_line"], list):
                     # Accepts a list
                     skip_line_results = [
-                        regex.search(x, line) for x in settings["skip_line"]
+                        re.search(x, line) for x in settings["skip_line"]
                     ]
                 else:
                     # Or a simple string
-                    skip_line_results = [regex.search(settings["skip_line"], line)]
+                    skip_line_results = [re.search(settings["skip_line"], line)]
                 if any(skip_line_results):
                     # There was at least one match to a skip_line
                     logger.debug("skip_line match on \ns*%s*", line)
@@ -203,13 +200,13 @@ def parse_by_rule(
 
     # Try finding & parsing blocks of lines one by one
     while True:
-        start = regex.search(settings["start"], content)
+        start = re.search(settings["start"], content)
         if not start:
             logger.debug("Failed to find lines block start")
             break
         content = content[start.end() :]
 
-        end = regex.search(settings["end"], content)
+        end = re.search(settings["end"], content)
         if not end:
             logger.debug("Failed to find lines block end")
             break
@@ -265,12 +262,12 @@ def parse(
 
 
 def parse_current_row(
-    match: Optional[Match[str]], current_row: Dict[str, Any]
+    match: Optional[Any], current_row: Dict[str, Any]
 ) -> Dict[str, Any]:
     """Parse the current row data.
 
     Args:
-        match (Optional[Match[str]]): The match object.
+        match (Optional[Any]): The match object.
         current_row (Dict[str, Any]): The current row dictionary.
 
     Returns:
