@@ -3,7 +3,6 @@
 Initial work and maintenance by Holger Brunn @hbrunn
 """
 
-import re
 from logging import getLogger
 from typing import Any
 from typing import Dict
@@ -11,6 +10,8 @@ from typing import List
 from typing import Match
 from typing import Optional
 from typing import Union
+
+import regex as re  # type: ignore[import-untyped]
 
 
 # from ..invoice_template import InvoiceTemplate  # type: ignore[unused-ignore]
@@ -38,7 +39,7 @@ def parse_line(patterns: Union[str, List[str]], line: str) -> Optional[Match[str
     for pattern in patterns:
         match = re.search(pattern, line)
         if match:
-            return match
+            return match  # type: ignore[no-any-return]
     return None
 
 
