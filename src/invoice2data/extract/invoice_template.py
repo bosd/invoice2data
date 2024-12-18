@@ -3,7 +3,6 @@
 Templates are initially read from .yml files and then kept as class.
 """
 
-import re
 import unicodedata
 from logging import getLogger
 from pprint import pformat
@@ -12,6 +11,7 @@ from typing import Dict
 from typing import OrderedDict as OrderedDictType
 
 import dateparser  # type: ignore[import-untyped]
+import regex as re  # type: ignore[import-untyped]
 
 from ..input import ocrmypdf
 
@@ -118,7 +118,7 @@ class InvoiceTemplate(OrderedDictType[str, Any]):
             )
             optimized_str = re.sub(replace[0], replace[1], optimized_str)
 
-        return optimized_str
+        return str(optimized_str)
 
     def matches_input(self, extracted_str: str) -> bool:
         """Check if the extracted string matches the template keywords.
