@@ -53,7 +53,7 @@ lines:
       line_tax_amount: float
 keywords:
   - BE.406
-  - (?i)EG Retail
+  - EG Retail
 options:
   currency: EUR
   languages:

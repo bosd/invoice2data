@@ -51,8 +51,8 @@ lines:
       line_tax_amount: float
       price_unit: float
 keywords:
-  - (?i)Shell
-  - (?i)BON
+  - Shell
+  - BON
   - NL
   - €
 options:

@@ -60,8 +60,8 @@ lines:
     price_unit: float
     price_subtotal: float
 keywords:
-  - (?i)Accor
-  - 'BE\s0673\s923'
+  - Accor
+  - "BE 0673 923"
   - "Invoice"
 options:
   currency: EUR

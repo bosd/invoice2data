@@ -61,8 +61,8 @@ lines:
     price_subtotal: float
     taxpercent: float
 keywords:
-  - (?i)Accor
-  - 'BE\s0673\s923'
+  - Accor
+  - "BE 0673 923"
   - "Factuur"
 options:
   currency: EUR
