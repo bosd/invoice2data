@@ -127,7 +127,7 @@ def extract_data(
                                         Templates are loaded using `read_template` function in `loader.py`.
         input_module (Any, optional): Library to be used to extract text
                                         from the given `invoicefile`.
-                                        Choices: {'pdftotext', 'pdfminer', 'tesseract', 'text'}.
+                                        Choices: {'pypdf', 'pdftotext', 'pdfminer', 'tesseract', 'text'}.
 
     Returns:
         Dict[str, Any]: Extracted and matched fields, or False if no template matches.
