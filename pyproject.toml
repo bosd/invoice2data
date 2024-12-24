@@ -92,6 +92,7 @@ ocrmypdf = ["ocrmypdf >= 14.4.0"]
 pdfminer-six = ["pdfminer-six == 20231228"]
 pdfplumber = ["pdfplumber == 0.11.4"]
 pyyaml = ["pyyaml == 6.0.2"]
+pypdf = ["pypdf >= 3.1.0"]
 
 [tool.uv]
 package = true
