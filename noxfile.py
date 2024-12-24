@@ -162,6 +162,8 @@ def mypy(session: nox.Session) -> None:
         "dev",
         "--group",
         "mypy",
+        "--extra",
+        "pypdf",
         env={"UV_PROJECT_ENVIRONMENT": session.virtualenv.location},
         external=True,
     )
@@ -192,6 +194,8 @@ def tests(session: nox.Session) -> None:
         "pdfplumber",
         "--extra",
         "pyyaml",
+        "--extra",
+        "pypdf",
         env={"UV_PROJECT_ENVIRONMENT": session.virtualenv.location},
     )
     session.run(
@@ -246,6 +250,8 @@ def typeguard(session: nox.Session) -> None:
         "pdfminer-six",
         "--group",
         "typeguard",
+        "--extra",
+        "pypdf",
         env={"UV_PROJECT_ENVIRONMENT": session.virtualenv.location},
         # external=True,
     )
@@ -275,6 +281,8 @@ def xdoctest(session: nox.Session) -> None:
         "dev",
         "--group",
         "xdoctest",
+        "--extra",
+        "pypdf",
         env={"UV_PROJECT_ENVIRONMENT": session.virtualenv.location},
         # external=True,
     )
