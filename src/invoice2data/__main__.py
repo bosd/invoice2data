@@ -24,6 +24,7 @@ from .input import ocrmypdf
 from .input import pdfminer_wrapper
 from .input import pdfplumber
 from .input import pdftotext
+from .input import pypdf
 from .input import tesseract
 from .input import text
 from .output import to_csv
@@ -34,6 +35,7 @@ from .output import to_xml
 logger = logging.getLogger()
 
 input_mapping = {
+    "pypdf": pypdf,
     "pdftotext": pdftotext,
     "tesseract": tesseract,
     "pdfminer": pdfminer_wrapper,
@@ -145,11 +147,12 @@ def extract_data(
         {'issuer': 'OYO', 'amount': 1939.0, 'date': datetime.datetime(2017, 12, 31, 0, 0), 'invoice_number': 'IBZY2087', 'currency': 'INR', 'hotel_details': ' OYO 4189 Resort Nanganallur', 'date_check_in': datetime.datetime(2017, 12, 31, 0, 0), 'date_check_out': datetime.datetime(2018, 1, 1, 0, 0), 'amount_rooms': 1.0, 'booking_id': 'IBZY2087', 'payment_method': 'Cash at Hotel', 'gstin': '06AABCO6063D1ZQ', 'cin': 'U63090DL2012PTC231770', 'desc': 'Invoice from OYO'}
 
     """
-    if input_module is None:
-        if invoicefile.lower().endswith(".txt"):
-            input_module = text
-        else:
-            input_module = pdftotext
+    # BOSD TODO REMOVE
+    if isinstance(input_module, str):
+        input_module = input_mapping[input_module]
+    elif input_module is None:
+        input_module = text if invoicefile.lower().endswith(".txt") else pdftotext
+    # BOSD TODO REMOVE
 
     extracted_str = input_module.to_text(invoicefile)
     if not isinstance(extracted_str, str) or not extracted_str.strip():
