@@ -17,7 +17,7 @@ fields:
     type: float
   amount_untaxed:
     parser: regex
-    regex: \s+Subtotal\s{10,40}[$€]\s(\d*[.,]?\d+[,.]\d+)
+    regex: \s+Subtotal\s{10,45}[$€]\s(\d*[.,]?\d+[,.]\d+)
     type: float
   invoice_number:
     parser: regex
@@ -133,7 +133,7 @@ fields:
   lines:
     parser: lines
     start: "Amount"
-    end: 'Subtotal\s{10,40}[$€]'
+    end: 'Subtotal\s{10,45}[$€]'
     first_line:
       - '(?P<sectionheader>--- \w+((?:\s\S+)*) ---)'
       - '(\[(?P<code>\S+)\]\s)(?P<name>[\S ]+)\s+(?P<qty>\d+[,.]\d+)\s((?P<unece_code>LTR)|(?P<uom>\w+))\s+(?P<price_unit>\d*[.,]?\d+[,.]\d+)\s+(?P<discount>\d+[,.]\d{2})\s+(?P<line_tax_percent>\d{1,2}[,.]\d{2})?%?\s*([$€]\s+)?(?P<price_subtotal>\d*[.,]?\d+[,.]\d+)'
