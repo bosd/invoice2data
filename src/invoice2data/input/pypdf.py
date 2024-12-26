@@ -1,13 +1,15 @@
 """Pypdf input module for invoice2data."""
 
+from typing import Any
+from typing import Dict
+from typing import Optional
+
 import pypdf
 from pypdf.generic import RectangleObject
-from typing import Optional, Dict, Any
 
 
 def to_text(path: str, area: Optional[Dict[str, Any]] = None) -> str:
-    """
-    Extracts text from the given PDF file.
+    """Extracts text from the given PDF file.
 
     Args:
         path (str): Path to the PDF file.
@@ -49,10 +51,8 @@ def to_text(path: str, area: Optional[Dict[str, Any]] = None) -> str:
             h_pt = h / resolution * 72
 
             # Create a rectangle for the area
-            rect = RectangleObject(
-                (x_pt, y_pt, x_pt + w_pt, y_pt + h_pt)
-            )
+            rect = RectangleObject((x_pt, y_pt, x_pt + w_pt, y_pt + h_pt))
 
             # Extract text within the rectangle
-            text = page.extract_text(clip=rect)
+            text = page.extract_text(clip=rect, extraction_mode="layout")
             return text
