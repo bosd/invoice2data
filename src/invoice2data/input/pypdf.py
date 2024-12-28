@@ -8,30 +8,45 @@ import pypdf
 from pypdf.generic import RectangleObject
 
 
-def to_text(path: str, area: Optional[Dict[str, Any]] = None) -> str:
-    """Extracts text from the given PDF file.
+class PyPDFLoader:
+    def __init__(self, path: str):
+        self.path = path
+        self.file_handle = open(path, "rb")  # Keep the file handle open
+        self.reader = pypdf.PdfReader(self.file_handle)
+        self._extracted_text = None
 
-    Args:
-        path (str): Path to the PDF file.
-        area (Optional[Dict[str, Any]]): A dictionary containing the area
-                                        specifications (page numbers,
-                                        coordinates, and resolution).
+    def __del__(self):
+        # Close the file when the object is garbage collected
+        if self.file_handle:
+            self.file_handle.close()
 
-    Returns:
-        str: Extracted text from the specified area of the PDF.
-    """
-    with open(path, "rb") as f:
-        reader = pypdf.PdfReader(f)
 
-        if area is None:
-            # Extract text from all pages
-            num_pages = len(reader.pages)
-            text = ""
+    @property
+    def extracted_text(self) -> str:
+        if self._extracted_text is None:
+            # Extract text from all pages and store it
+            num_pages = len(self.reader.pages)
+            self._extracted_text = ""
             for page_num in range(num_pages):
-                page = reader.pages[page_num]
-                text += page.extract_text(extraction_mode="layout")
-            return text
-        else:
+                page = self.reader.pages[page_num]
+                self._extracted_text += page.extract_text(extraction_mode="layout")
+        return self._extracted_text
+
+    def get_text(self, area: Optional[Dict[str, Any]] = None) -> str:
+            """Extracts text from the given PDF file.
+
+            Args:
+                area (Optional[Dict[str, Any]]): A dictionary containing the area
+                                                    specifications (page numbers,
+                                                    coordinates, and resolution).
+
+            Returns:
+                str: Extracted text from the specified area of the PDF.
+            """
+
+            if area is None:
+                return self.extracted_text  # Use cached text
+
             # Extract text from specified area
             page_num = area.get("f", 1) - 1  # Page number (1-indexed)
             x = area.get("x", 0)
@@ -40,7 +55,8 @@ def to_text(path: str, area: Optional[Dict[str, Any]] = None) -> str:
             h = area.get("H", 1000)  # Default height
             resolution = area.get("r", 300)  # Default resolution
 
-            page = reader.pages[page_num]
+            page = self.reader.pages[page_num]
+            page_text = page.extract_text(extraction_mode="layout")  # Extract text only once
             page_width = page.mediabox.width
             page_height = page.mediabox.height
 
@@ -53,6 +69,35 @@ def to_text(path: str, area: Optional[Dict[str, Any]] = None) -> str:
             # Create a rectangle for the area
             rect = RectangleObject((x_pt, y_pt, x_pt + w_pt, y_pt + h_pt))
 
-            # Extract text within the rectangle
-            text = page.extract_text(clip=rect, extraction_mode="layout")
-            return text
+            # --- Improved Area Extraction ---
+            lines = page_text.splitlines()
+            non_empty_lines = [line for line in lines if line.strip()]  # Remove empty lines
+            extracted_lines = []
+            current_y = 0  # Track the current y position
+
+            for line_num, line in enumerate(non_empty_lines):
+                line_height = 12 / resolution  # Estimate line height (adjust as needed)
+                current_y += line_height  # Update the y position
+
+                if y <= current_y <= y + h / page_height:  # Check if line is within the area
+                    char_start = int(x / page_width * len(line))
+                    char_end = int((x + w) / page_width * len(line))
+                    extracted_lines.append(line[char_start:char_end])
+
+            return "\n".join(extracted_lines)
+
+
+def to_text(path: str, area: Optional[Dict[str, Any]] = None) -> str:
+    """Extracts text from the given PDF file.
+
+    Args:
+        path (str): Path to the PDF file.
+        area (Optional[Dict[str, Any]]): A dictionary containing the area
+                                            specifications (page numbers,
+                                            coordinates, and resolution).
+
+    Returns:
+        str: Extracted text from the specified area of the PDF.
+    """
+    loader = PyPDFLoader(path)
+    return loader.get_text(area)
