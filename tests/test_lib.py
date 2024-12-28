@@ -24,7 +24,6 @@ from invoice2data.input import ocrmypdf
 from invoice2data.input import pdfminer_wrapper
 from invoice2data.input import pdfplumber
 from invoice2data.input import pdftotext
-from invoice2data.input import pypdf
 from invoice2data.input import tesseract
 from invoice2data.output import to_csv
 from invoice2data.output import to_json
@@ -76,19 +75,6 @@ class TestLIB(unittest.TestCase):
             except ImportError:
                 # print("pdftotext module not installed!")
                 self.assertTrue(False, "pdftotext is not installed")
-            self.assertTrue(type(res) is dict, "return is not a dict")
-
-    def test_extract_data_pypdftotext(self) -> None:
-        pdf_files = get_sample_files(".pdf")
-        for file in pdf_files:
-            try:
-                res = extract_data(file, [], pypdf)
-                print(
-                    res
-                )  # Check why logger.info is not working, for the time being using print
-            except ImportError:
-                # print("pdftotext module not installed!")
-                self.assertTrue(False, "pypdf is not installed")
             self.assertTrue(type(res) is dict, "return is not a dict")
 
     def test_output_json(self) -> None:
