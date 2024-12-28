@@ -18,6 +18,7 @@ from ..input import ocrmypdf
 # Area extraction is currently added for pypdf, pdftotext, ocrmypdf and tesseract (which uses pdftotext)
 from ..input import pdftotext
 from ..input import pypdf
+from ..input import pypdfium2
 from ..input import tesseract
 from . import parsers
 from .plugins import lines
@@ -303,9 +304,12 @@ def _handle_area(
     optimized_str: str,
 ) -> str:
     """Handle area-specific extraction."""
-    if "area" in v and input_module in (pypdf, pdftotext, ocrmypdf, tesseract):
+    if "area" in v and input_module in (pypdfium2, pdftotext, ocrmypdf, tesseract):
         logger.debug(f"Area was specified with parameters {v['area']}")
-        optimized_str_area: str = input_module.to_text(invoice_file, v["area"])
+        if input_module == pypdfium2:
+            optimized_str_area = input_module.extract_text_from_area(invoice_file, v["area"])
+        else:
+            optimized_str_area: str = input_module.to_text(invoice_file, v["area"])
         logger.debug(
             "START pdftotext area result ===========================\n%s",
             optimized_str_area,
