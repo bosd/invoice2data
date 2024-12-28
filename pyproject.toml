@@ -32,6 +32,8 @@ dependencies = [
     "dateparser >= 1.2.0",
     "PyYAML >= 6.0",
     "regex >= 2024.4.16",
+    "pypdf >= 3.1.0",
+    "pypdfium2 >= 4.24.0",
 ]
 
 
@@ -92,7 +94,6 @@ ocrmypdf = ["ocrmypdf >= 14.4.0"]
 pdfminer-six = ["pdfminer-six == 20231228"]
 pdfplumber = ["pdfplumber == 0.11.4"]
 pyyaml = ["pyyaml == 6.0.2"]
-pypdf = ["pypdf >= 3.1.0"]
 
 [tool.uv]
 package = true
