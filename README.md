@@ -1,3 +1,83 @@
+Todo in to_CSV
+There is a list passed in date format. Making strftime conversion fail.
+
+            for k, v in line.items():
+                if k.startswith("date") or k.endswith("date"):
+                    v = v.strftime(date_format)  # Assuming v is a date object
+                csv_items.append(v)
+            writer.writerow(csv_items)
+  # look at how it is done in to_xml
+
+
+EBUG:invoice2data.extract.invoice_template: START pdftotext area result ===========================
+ALEXINUX
+de Lattre Alexis
+27 rue Henri Rolland
+69100 Villeurbanne
+  Facture n° 2022089083
+    Date : 28/11/2022
+    Numéro de dossier : 365146 - ALEXINUX
+
+
+Désignation Nombre P.U. HT Montant HT
+  le-tout-lyon.fr du 06/12/2022 45,93 €
+
+  Justificatif PDF 1 0,75 € 0,75 €
+
+  Justificatif Papier 0 3,50 € 0 €
+
+Total HT : 46,68 €
+
+TVA 20% : 9,34 €
+
+Total TTC : 56,02 €
+Modes de règlement
+CB Vous pouvez régler directement cette annonce en ligne en cliquant sur le lien fournit dans
+l’email d’envoi du devis ou en nous contactant par téléphone au 01 71 17 61 67. Le paiement
+CB est totalement sécurisé.
+Chèque Le règlement par chèque n’est plus accepté.
+Virement BRED BANQUE POPULAIRE – Titulaire du compte : NETPRESSE
+IBAN : FR76 10107 00245 00617052317 39 - BIC : BREDFRPP
+Tout retard de paiement fera l’objet d’une pénalité de retard calculée sur la base de trois fois le taux de l’intérêt légal (art L441-6 Code du
+Commerce) Aucun escompte ne sera accordé pour paiement anticipé, Indemnité forfaitaire de recouvrement : 40€. TVA acquittée sur les
+encaissements.
+Powered by TCPDF (www.tcpdf.org)
+NETPRESSE
+Siège social : 16 rue Mollien - 92100 BOULOGNE – Tél : 01 71 17 61 67 – annonce@publicationannoncelegale.fr
+Sarl au capital de 10 000€ - RSC Paris B 530 848 134 – Siret 53084813400017 – TVA F63530848134
+Facture n° 2022089083 - Page 1/1
+Page 1/1
+DEBUG:invoice2data.extract.invoice_template: END pdftotext area result =============================
+
+implement these cleanup operations:
+https://pypdf.readthedocs.io/en/latest/user/post-processing-in-text-extraction.html
+
+pypdfium2:
+  - support area but different coordinate system?
+  - does not support layout preservation
+pypdf:
+  - no support for area.
+  -
+
+
+
+
+Add explanation to area function. For poppler.
+X coordinate is on teh bottom.
+https://manpages.debian.org/stretch/poppler-utils/pdftotext.1.en.html
+
+Tip: Use inkscape to open the pdf. Then you can draw a box to find the area.
+
+----
+separate pr, imrpve netpresse test.
+Set resolution to 100. So the bounding box
+
+It no longer returns an array. so update test_cli as well
+
+maybe use fitz
+https://stackoverflow.com/questions/55583510/extract-pdf-text-within-bounding-box-directly-into-python
+
+------
 # Data extractor for PDF invoices - invoice2data
 
 [![Read the documentation at https://invoice2data.readthedocs.io/](https://img.shields.io/readthedocs/invoice2data/latest.svg?label=Read%20the%20Docs)][read the docs]
