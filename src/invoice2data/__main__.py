@@ -25,6 +25,7 @@ from .input import pdfminer_wrapper
 from .input import pdfplumber
 from .input import pdftotext
 from .input import pypdf
+from .input import pypdfium2
 from .input import tesseract
 from .input import text
 from .output import to_csv
@@ -36,6 +37,7 @@ logger = logging.getLogger()
 
 input_mapping = {
     "pypdf": pypdf,
+    # "pypdfium2": pypdfium2,
     "pdftotext": pdftotext,
     "tesseract": tesseract,
     "pdfminer": pdfminer_wrapper,
@@ -151,7 +153,7 @@ def extract_data(
     if isinstance(input_module, str):
         input_module = input_mapping[input_module]
     elif input_module is None:
-        input_module = text if invoicefile.lower().endswith(".txt") else pdftotext
+        input_module = text if invoicefile.lower().endswith(".txt") else pypdfium2
     # BOSD TODO REMOVE
 
     extracted_str = input_module.to_text(invoicefile)
@@ -229,7 +231,7 @@ def extract_data_fallback_ocrmypdf(
     "--input-reader",
     "-i",
     type=click.Choice(list(input_mapping.keys())),
-    help="Choose text extraction function. Default: auto-detect between text & pdftotext",
+    help="Choose text extraction function. Default: auto-detect between text & pypdf",
 )
 @click.option(
     "--output-format",
