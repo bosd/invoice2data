@@ -208,7 +208,7 @@ def _process_table_line(  # noqa: C901
             # In case someone mixup syntax
             # fields:
             #    example_field:
-            #      type: float
+            #      type: fl...
             #      group: sum
             field_set = table["fields"].get(field, {})
             if "type" in field_set:
