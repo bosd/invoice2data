@@ -204,6 +204,12 @@ def _process_table_line(  # noqa: C901
         elif field in types:
             value = self.coerce_type(value, types[field])
         elif table.get("fields"):
+            # Writing templates is hard. So we also support the following format
+            # In case someone mixup syntax
+            # fields:
+            #    example_field:
+            #      type: float
+            #      group: sum
             field_set = table["fields"].get(field, {})
             if "type" in field_set:
                 value = self.coerce_type(value, field_set.get("type"))
