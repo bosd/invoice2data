@@ -1,7 +1,7 @@
 """CSV output module for invoice2data."""
 
 import csv
-import datetime  # noqa
+import datetime
 from typing import Any
 from typing import Dict
 from typing import List
@@ -50,6 +50,8 @@ def write_to_file(
             csv_items = []
             for k, v in line.items():
                 if k.startswith("date") or k.endswith("date"):
-                    v = v.strftime(date_format)  # Assuming v is a date object
+                    if isinstance(v, datetime.datetime):
+                        # kwargs[key] = value.strftime("%Y-%m-%d")
+                        v = v.strftime(date_format)  # Assuming v is a date object
                 csv_items.append(v)
             writer.writerow(csv_items)
