@@ -39,7 +39,7 @@ jobs:
 
     steps:
       - name: Check out the repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Python ${{ matrix.python }}
         uses: actions/setup-python@v5
@@ -53,7 +53,7 @@ jobs:
         run: uv venv
 
       - name: Install system dependencies (Linux)
-        if: matrix.os == 'ubuntu-latest'
+        if: matrix.os == 'ubuntu-latest' && matrix.session is in ("tests", "typeguard", "mypy")
         run: |
           sudo apt update
           sudo apt install tesseract-ocr poppler-utils imagemagick ghostscript
@@ -138,7 +138,7 @@ jobs:
     needs: tests
     steps:
       - name: Check out the repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Python
         uses: actions/setup-python@v5
