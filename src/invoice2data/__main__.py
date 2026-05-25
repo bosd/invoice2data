@@ -24,6 +24,7 @@ from .input import ocrmypdf
 from .input import pdfminer_wrapper
 from .input import pdfplumber
 from .input import pdftotext
+from .input import pymupdf
 from .input import tesseract
 from .input import text
 from .output import to_csv
@@ -34,6 +35,7 @@ from .output import to_xml
 logger = logging.getLogger()
 
 input_mapping = {
+    "pymupdf": pymupdf,
     "pdftotext": pdftotext,
     "tesseract": tesseract,
     "pdfminer": pdfminer_wrapper,
