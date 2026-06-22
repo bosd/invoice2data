@@ -11,14 +11,13 @@
 
 
 import os
+import shutil
 import unittest
 from io import StringIO  # noqa: F401
 from typing import Any
-from typing import Dict
-from typing import List
-from typing import Union
 from unittest import mock
 
+from invoice2data import Invoice2Data
 from invoice2data.__main__ import extract_data
 from invoice2data.input import ocrmypdf
 from invoice2data.input import pdfminer_wrapper
@@ -45,7 +44,7 @@ needs_pdfplumber = unittest.skipIf(
 )
 
 
-def _extract_data_for_export() -> List[Dict[str, Any]]:
+def _extract_data_for_export() -> list[dict[str, Any]]:
     pdf_files = get_sample_files(".pdf")
     for file in pdf_files:
         if file.endswith("oyo.pdf"):
@@ -107,7 +106,7 @@ class TestLIB(unittest.TestCase):
             if file.endswith("NetpresseInvoice.pdf"):
                 print("Testing pdfminer with file", file)
                 try:
-                    res: Union[str, Dict[str, Any]] = extract_data(
+                    res: str | dict[str, Any] = extract_data(
                         file, None, pdfminer_wrapper
                     )
                     print(res)
@@ -124,6 +123,23 @@ class TestLIB(unittest.TestCase):
             print("Testing pdfplumber with file", file)
             extract_data(file, [], pdfplumber)
 
+    @needs_pdfplumber
+    def test_pdfplumber_to_text_not_empty(self) -> None:
+        # Regression: to_text() used to always return "" because it threw away
+        # the per-page extraction and re-derived text from a dict that never had
+        # a "text" key. Guard against the backend silently going dead again.
+        pdf_files = get_sample_files(".pdf")
+        for file in pdf_files:
+            if not file.endswith("FlipkartInvoice.pdf"):
+                continue
+            text = pdfplumber.to_text(file)
+            self.assertGreater(
+                len(text.strip()),
+                0,
+                f"pdfplumber.to_text returned empty text for {file}",
+            )
+
+    @unittest.skipUnless(shutil.which("tesseract"), "tesseract not installed")
     def test_tesseract_for_return(self) -> None:
         png_files = get_sample_files(".png")
         for file in png_files:
@@ -131,6 +147,14 @@ class TestLIB(unittest.TestCase):
                 self.assertTrue(False, "Tesseract returned None")
             else:
                 self.assertTrue(True)
+
+    def test_invoice2data_class(self) -> None:
+        i2d = Invoice2Data()
+        self.assertTrue(len(i2d.templates) > 0, "no built-in templates loaded")
+        for file in get_sample_files(".pdf"):
+            if file.endswith("oyo.pdf"):
+                res = i2d.extract_data(file)
+                self.assertEqual(res.get("issuer"), "OYO")
 
     def test_ocrmypdf_available_unavailable(self) -> None:
         with mock.patch.dict("sys.modules", {"ocrmypdf": None}):

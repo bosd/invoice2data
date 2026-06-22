@@ -1,5 +1,8 @@
+# Data extractor for PDF invoices - invoice2data
+
 ```{include} ../README.md
 ---
+start-after: <!-- docs-body -->
 end-before: <!-- github-only -->
 ---
 ```
@@ -7,6 +10,7 @@ end-before: <!-- github-only -->
 [license]: license
 [contributor guide]: contributing
 [command-line reference]: usage
+[tutorial]: tutorial
 
 ```{toctree}
 ---

@@ -9,10 +9,6 @@ from copy import deepcopy
 from os.path import join
 from typing import Any
 from typing import ClassVar
-from typing import Dict
-from typing import List
-from typing import Optional
-from typing import Tuple
 
 import click
 
@@ -110,9 +106,9 @@ if not logger.handlers:
 
 def extract_data(
     invoicefile: str,
-    templates: Optional[List[InvoiceTemplate]] = None,
+    templates: list[InvoiceTemplate] | None = None,
     input_module: Any = None,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Extracts structured data from PDF/image invoices.
 
     This function uses the text extracted from a PDF file or image and
@@ -123,14 +119,14 @@ def extract_data(
 
     Args:
         invoicefile (str): Path of electronic invoice file in PDF, JPEG, PNG
-        templates (Optional[List[InvoiceTemplate]]): List of instances of class `InvoiceTemplate`.
+        templates (list[InvoiceTemplate] | None): List of instances of class `InvoiceTemplate`.
                                             Templates are loaded using `read_template` function in `loader.py`.
         input_module (Any, optional): Library to be used to extract text
                                         from the given `invoicefile`.
                                         Choices: {'pdftotext', 'pdfminer', 'tesseract', 'text'}.
 
     Returns:
-        Dict[str, Any]: Extracted and matched fields, or False if no template matches.
+        dict[str, Any]: Extracted and matched fields, or False if no template matches.
 
     Notes:
         Import the required `input_module` when using invoice2data as a library.
@@ -152,7 +148,15 @@ def extract_data(
     elif input_module is None:
         input_module = text if invoicefile.lower().endswith(".txt") else pdftotext
 
-    extracted_str = input_module.to_text(invoicefile)
+    try:
+        extracted_str = input_module.to_text(invoicefile)
+    except Exception:
+        logger.exception(
+            "Failed to extract text from %s using %s",
+            invoicefile,
+            input_module.__name__,
+        )
+        return {}
     if not isinstance(extracted_str, str) or not extracted_str.strip():
         logger.error(
             "Failed to extract text from %s using %s",
@@ -192,14 +196,14 @@ def extract_data(
 
 def extract_data_fallback_ocrmypdf(
     invoicefile: str,
-    templates: List[InvoiceTemplate],
+    templates: list[InvoiceTemplate],
     input_module: Any,
-) -> Tuple[str, str, List[InvoiceTemplate]]:
+) -> tuple[str, str, list[InvoiceTemplate]]:
     logger.debug("Trying OCR extraction with ocrmypdf")
     extracted_str = ocrmypdf.to_text(invoicefile)
 
     # Convert the filter object to a list
-    templates_matched: List[InvoiceTemplate] = list(
+    templates_matched: list[InvoiceTemplate] = list(
         filter(lambda t: t.matches_input(extracted_str), templates)
     )
     templates_matched.sort(key=lambda k: k["priority"], reverse=True)
@@ -209,6 +213,44 @@ def extract_data_fallback_ocrmypdf(
     else:
         # Return empty list if no template is matched
         return extracted_str, invoicefile, []
+
+
+class Invoice2Data:
+    """Object-oriented interface around :func:`extract_data`.
+
+    Holds a reusable set of templates so several invoices can be processed
+    without reloading templates each time.
+
+    Args:
+        load_built_in_templates (bool): Load the bundled templates on init.
+            Defaults to True.
+    """
+
+    def __init__(self, load_built_in_templates: bool = True) -> None:
+        self.templates: list[InvoiceTemplate] = []
+        if load_built_in_templates:
+            self.templates += read_templates()
+
+    def read_templates(self, path: str) -> None:
+        """Add templates from a user folder to this instance.
+
+        Args:
+            path (str): Folder containing .yml/.json templates to load.
+        """
+        self.templates += read_templates(os.path.abspath(path))
+
+    def extract_data(self, path: str, input_module: Any = None) -> dict[str, Any]:
+        """Extract data from an invoice using this instance's templates.
+
+        Args:
+            path (str): Path to the invoice file.
+            input_module (Any): Text-extraction module to use. Defaults to None
+                (auto-detect between text and pdftotext).
+
+        Returns:
+            dict[str, Any]: Extracted fields, or an empty dict if none matched.
+        """
+        return extract_data(path, self.templates, input_module)
 
 
 @click.command()
@@ -268,17 +310,17 @@ def extract_data_fallback_ocrmypdf(
 )
 @click.version_option()
 def main(
-    input_reader: Optional[str],
+    input_reader: str | None,
     output_format: str,
     output_date_format: str,
     output_name: str,
     debug: bool,
-    copy: Optional[str],
-    move: Optional[str],
+    copy: str | None,
+    move: str | None,
     filename_format: str,
-    template_folder: Optional[str],
+    template_folder: str | None,
     exclude_built_in_templates: bool,
-    input_files: Tuple[Any, ...],
+    input_files: tuple[Any, ...],
 ) -> None:
     """Extract data from PDF files and output it in a structured format."""
     if debug:
@@ -315,8 +357,8 @@ def main(
 
 
 def _load_templates(
-    template_folder: Optional[str], exclude_built_in_templates: bool
-) -> List[Any]:
+    template_folder: str | None, exclude_built_in_templates: bool
+) -> list[Any]:
     """Load templates from the specified folder."""
     templates = []
     if template_folder:
@@ -328,9 +370,9 @@ def _load_templates(
 
 def _process_and_move_copy(
     filename: str,
-    res: Dict[str, Any],
-    copy: Optional[str],
-    move: Optional[str],
+    res: dict[str, Any],
+    copy: str | None,
+    move: str | None,
     filename_format: str,
 ) -> None:
     """Process the extracted data and copy/move the file."""
